@@ -33,7 +33,7 @@ object KrudTestServer {
                                         IdCol(Item::id),
                                         TextCol(Item::name)
                                 ),
-                                listOf(Item(UUID.randomUUID(), "Whatever"))
+                                listOf(Item(UUID(0L, 0L), "Whatever"))
                         )
                 ))
         )
