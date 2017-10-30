@@ -217,29 +217,56 @@ ul.sortable > li.placeholder {
                                 }
 
                                 is Content.Form -> {
-                                    div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col") {
-                                        h4("mdl-card__title") { +content.mode.name }
-                                        form(method = FormMethod.post, classes = "mdl-tooltip--large") {
+                                    blockWithTitleAndForm(content.mode.name, content.formAction) {
 
-                                            content.controlsAndValues.forEach { (ctl, value) ->
-                                                renderControl(ctl, value)
-                                            }
-
-                                            /*div { // TODO
-                                                button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                                    +"Save"
-                                                }
-                                            }*/
+                                        content.controlsAndValues.forEach { (ctl, value) ->
+                                            renderControl(ctl, value)
                                         }
 
-                                        /*form(method = FormMethod.delete, action = "$homePath/module/table/id") { // TODO
-                                            style = "position:relative;bottom:2.5em"
+                                        div {
                                             button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                                onClick = "return confirm('O RLY?');"
-                                                style ="position:absolute;right:0em"
-                                                +"Remove"
+                                                +"Proceed"
                                             }
-                                        }*/
+                                        }
+                                    }
+
+                                    /*form(method = FormMethod.delete, action = "$homePath/module/table/id") { // TODO
+                                        style = "position:relative;bottom:2.5em"
+                                        button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                            onClick = "return confirm('O RLY?');"
+                                            style ="position:absolute;right:0em"
+                                            +"Remove"
+                                        }
+                                    }*/
+                                }
+
+                                is Content.Review -> {
+                                    blockWithTitleAndForm(content.title, content.formAction) {
+                                        table("mdl-data-table mdl-js-data-table") {
+                                            tbody {
+                                                content.namesTitlesValues.forEach { (name, title, value) ->
+                                                    tr {
+                                                        td("mdl-data-table__cell--non-numeric") {
+                                                            +title
+                                                        }
+                                                        td("mdl-data-table__cell--non-numeric") {
+                                                            +value
+
+                                                            input(type = InputType.hidden, name = name) {
+                                                                this@input.value = value
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        div {
+                                            style = "margin-top: 16px"
+                                            button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                                +"Save (TODO)" // TODO
+                                            }
+                                        }
                                     }
                                 }
                             }.also { }
@@ -336,6 +363,19 @@ ul.sortable > li.placeholder {
             +icon
         }
         +text
+    }
+
+    private fun FlowContent.blockWithTitleAndForm(title: String, formAction: String, form: FORM.() -> Unit) {
+        div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col") {
+            h4("mdl-card__title") { +title }
+            form(
+                    method = FormMethod.post,
+                    action = formAction,
+                    classes = "mdl-tooltip--large"
+            ) {
+                form()
+            }
+        }
     }
 
     private fun FlowContent.renderControl(control: Control, value: String) {

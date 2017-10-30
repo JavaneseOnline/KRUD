@@ -11,10 +11,13 @@ import org.jetbrains.ktor.content.staticRootFolder
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.request.receiveParameters
 import org.jetbrains.ktor.response.respondRedirect
 import org.jetbrains.ktor.routing.get
+import org.jetbrains.ktor.routing.post
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import org.jetbrains.ktor.util.ValuesMap
 import java.io.File
 import java.util.*
 
@@ -33,7 +36,11 @@ object KrudTestServer {
                                         IdCol(Item::id),
                                         TextCol(Item::name)
                                 ),
-                                listOf(Item(UUID(0L, 0L), "Whatever"))
+                                listOf(Item(UUID(0L, 0L), "Whatever")),
+                                { map -> Item(
+                                        id = UUID.fromString(map["id"]!!),
+                                        name = map["name"]!!
+                                ) }
                         )
                 ))
         )
@@ -49,13 +56,24 @@ object KrudTestServer {
                     }
 
                     get("{module}/{tail...}") {
-                        val call = call
                         admin.request(
                                 call,
                                 HttpMethod.Get,
                                 call.parameters["module"]!!,
                                 call.parameters.getAll("tail")!!,
-                                call.parameters
+                                call.parameters,
+                                ValuesMap.Empty
+                        )
+                    }
+
+                    post("{module}/{tail...}") {
+                        admin.request(
+                                call,
+                                HttpMethod.Post,
+                                call.parameters["module"]!!,
+                                call.parameters.getAll("tail")!!,
+                                call.parameters,
+                                call.receiveParameters()
                         )
                     }
 

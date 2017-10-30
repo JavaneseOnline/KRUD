@@ -30,10 +30,17 @@ sealed class Content {
     class Form(
             val title: String,
             val mode: Mode,
+            val formAction: String,
             val controlsAndValues: List<Pair<Control, String>>
     ) : Content() {
         enum class Mode { Create, Edit }
     }
+
+    class Review(
+            val title: String,
+            val formAction: String,
+            val namesTitlesValues: List<Triple<String, String, String>>
+    ) : Content()
 
 }
 

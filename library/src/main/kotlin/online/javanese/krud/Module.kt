@@ -15,6 +15,7 @@ interface Module {
             template: ModuleTemplate,
             method: HttpMethod,
             pathSegments: List<String>,
-            parameters: ValuesMap
+            query: ValuesMap,
+            post: ValuesMap
     )
 }

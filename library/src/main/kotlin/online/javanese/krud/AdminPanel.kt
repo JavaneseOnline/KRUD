@@ -27,7 +27,8 @@ class AdminPanel(
             method: HttpMethod,
             modulePath: String,
             pathSegments: List<String>,
-            parameters: ValuesMap
+            query: ValuesMap,
+            post: ValuesMap
     ) {
         val routedModule = modules.firstOrNull { it.route == modulePath }
                 ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
@@ -37,9 +38,8 @@ class AdminPanel(
         module.request(call,
                 "$routePrefix/${routedModule.route}",
                 { root, titleText, content -> template(root, titleText, sidebarLinks, content) },
-                method,
-                pathSegments,
-                parameters)
+                method, pathSegments, query, post
+        )
     }
 
 }
