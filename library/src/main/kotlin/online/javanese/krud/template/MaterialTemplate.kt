@@ -7,6 +7,10 @@ class MaterialTemplate(
         private val staticPath: String
 ) : AdminTemplate {
 
+    private val flatButtonClasses = "mdl-button mdl-js-button mdl-js-ripple-effect"
+    private val raisedColouredButtonClasses = "mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+    private val raisedAccentedButtonClasses = "mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect"
+
     override fun invoke(
             root: HTML,
             titleText: String,
@@ -206,7 +210,11 @@ ul.sortable > li.placeholder {
                                             content.links.forEach { link ->
                                                 li("mdl-list__item") {
                                                     // for each entity class
-                                                    a(href = link.href, classes = "mdl-navigation__link") {
+                                                    a(href = link.href, classes = "mdl-navigation__link" +
+                                                            if (link.badge != null) " mdl-badge" else "") {
+
+                                                        link.badge?.let { attributes.put("data-badge", it) }
+
                                                         // link to class page
                                                         +link.text
                                                     }
@@ -224,24 +232,23 @@ ul.sortable > li.placeholder {
                                         }
 
                                         div {
-                                            button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                            button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
                                                 formAction = content.submitAction
                                                 +when (content.mode) {
                                                     Content.Form.Mode.Edit -> "Review"
                                                     Content.Form.Mode.Create -> "Create"
                                                 }
                                             }
+
+                                            /*if (content.mode == Content.Form.Mode.Edit) {
+                                                button(type = ButtonType.submit, classes = raisedAccentedButtonClasses) {
+                                                    style = "margin-left: 16px"
+                                                    onClick = "return confirm('O RLY?');"
+                                                    +"Remove"
+                                                }
+                                            }*/
                                         }
                                     }
-
-                                    /*form(method = FormMethod.delete, action = "$homePath/module/table/id") { // TODO
-                                        style = "position:relative;bottom:2.5em"
-                                        button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                            onClick = "return confirm('O RLY?');"
-                                            style ="position:absolute;right:0em"
-                                            +"Remove"
-                                        }
-                                    }*/
                                 }
 
                                 is Content.Review -> {
@@ -268,12 +275,13 @@ ul.sortable > li.placeholder {
                                         div {
                                             style = "margin-top: 16px"
 
-                                            button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                            button(type = ButtonType.submit, classes = flatButtonClasses) {
                                                 formAction = content.editAction
                                                 +"Edit"
                                             }
 
-                                            button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                            button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
+                                                style = "margin-left: 16px"
                                                 formAction = content.updateAction
                                                 +"Update"
                                             }

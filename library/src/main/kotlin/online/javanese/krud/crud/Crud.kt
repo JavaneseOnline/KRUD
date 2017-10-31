@@ -67,7 +67,7 @@ class Crud(
                 "Crud index",
                 Content.LinkList(
                         "Tables",
-                        tables.map { Link("$routePrefix/${it.route}/list/", "${it.displayName} (${it.count})") }
+                        tables.map { Link("$routePrefix/${it.route}/list/", it.displayName.fixIfBlank(), it.count.toString()) }
                 ) // todo: webSocket reactive update
         )
     }
@@ -84,7 +84,7 @@ class Crud(
                 Content.LinkList(
                         table.displayName,
                         table.findAll().map {
-                            Link("$routePrefix/${table.route}/edit/${table.getId(it)}/", table.getTitle(it))
+                            Link("$routePrefix/${table.route}/edit/${table.getId(it)}/", table.getTitle(it).fixIfBlank())
                         } + Link("$routePrefix/${table.route}/create/", " + create new")
                 )
         )
@@ -207,5 +207,6 @@ class Crud(
 
     private fun <E : Any> Table<E, *>.toMap(e: E) = cols.associateBy({ it.name }, { it.getValue(e) })
     private fun ValuesMap.toStringMap() = toMap().mapValues { (_, v) -> v.single() }
+    private fun String.fixIfBlank() = if (isBlank()) " ( blank ) " else this
 
 }

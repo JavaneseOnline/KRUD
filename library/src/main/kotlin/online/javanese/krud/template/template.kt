@@ -17,7 +17,8 @@ typealias ModuleTemplate = (
 
 class Link(
         val href: String,
-        val text: String
+        val text: String,
+        val badge: String? = null
 )
 
 sealed class Content {
