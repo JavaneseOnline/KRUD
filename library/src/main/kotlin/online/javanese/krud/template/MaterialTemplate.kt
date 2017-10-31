@@ -225,8 +225,11 @@ ul.sortable > li.placeholder {
 
                                         div {
                                             button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                                formAction = content.reviewAction
-                                                +"Review"
+                                                formAction = content.submitAction
+                                                +when (content.mode) {
+                                                    Content.Form.Mode.Edit -> "Review"
+                                                    Content.Form.Mode.Create -> "Create"
+                                                }
                                             }
                                         }
                                     }

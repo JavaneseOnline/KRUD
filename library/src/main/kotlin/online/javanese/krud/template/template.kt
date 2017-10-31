@@ -31,7 +31,7 @@ sealed class Content {
             val title: String,
             val mode: Mode,
             val controlsAndValues: List<Pair<Control, String>>,
-            val reviewAction: String
+            val submitAction: String
     ) : Content() {
         enum class Mode { Create, Edit }
     }

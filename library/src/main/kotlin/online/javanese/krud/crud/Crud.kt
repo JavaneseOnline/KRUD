@@ -3,6 +3,7 @@ package online.javanese.krud.crud
 import online.javanese.krud.Module
 import online.javanese.krud.checkRoutes
 import online.javanese.krud.template.Content
+import online.javanese.krud.template.Control
 import online.javanese.krud.template.Link
 import online.javanese.krud.template.ModuleTemplate
 import org.jetbrains.ktor.application.ApplicationCall
@@ -37,6 +38,12 @@ class Crud(
             method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "list" ->    // GET /admin/{table}/list/
                 list(routePrefix, template, call, tableRoute = pSegm[0])
 
+            method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "create"  -> // GET /admin/{table}/create/
+                create(routePrefix, template, call, tableRoute = pSegm[0])
+
+            method == HttpMethod.Post && pSegm.size == 2 && pSegm[1] == "create"  -> // GET /admin/{table}/create/
+                insert(routePrefix, template, call, tableRoute = pSegm[0], post = post)
+
             method == HttpMethod.Get && pSegm.size == 3 && pSegm[1] == "edit"  ->   // GET /admin/{table}/edit/{id}/
                 edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = ValuesMap.Empty)
 
@@ -60,8 +67,8 @@ class Crud(
                 "Crud index",
                 Content.LinkList(
                         "Tables",
-                        tables.map { Link("$routePrefix/${it.route}/list/", "${it.displayName} (${it.count})") } // todo + Link(create new)
-                ) // todo: webSocket interactive update
+                        tables.map { Link("$routePrefix/${it.route}/list/", "${it.displayName} (${it.count})") }
+                ) // todo: webSocket reactive update
         )
     }
 
@@ -76,9 +83,36 @@ class Crud(
                 "${table.displayName} — Crud",
                 Content.LinkList(
                         table.displayName,
-                        table.findAll().map { Link("$routePrefix/${table.route}/edit/${table.getId(it)}/", table.getTitle(it)) }
+                        table.findAll().map {
+                            Link("$routePrefix/${table.route}/edit/${table.getId(it)}/", table.getTitle(it))
+                        } + Link("$routePrefix/${table.route}/create/", " + create new")
                 )
         )
+    }
+
+    private suspend fun create(
+            routePrefix: String, template: ModuleTemplate, call: ApplicationCall, tableRoute: String
+    ) = findTableAndRun(call, tableRoute) { table ->
+        returnForm(
+                call, template,
+                "Creating new ${table.displayName} — Crud", "New ${table.displayName}",
+                Content.Form.Mode.Create,
+                table.cols.asSequence()
+                        .map(Col<*>::createControl)
+                        .filterNotNull().map { it to "" }
+                        .toList(),
+                "$routePrefix/${table.route}/create/")
+    }
+
+    private suspend fun insert(
+            routePrefix: String, template: ModuleTemplate, call: ApplicationCall, tableRoute: String, post: ValuesMap
+    ) = findTableAndRun(call, tableRoute) { table ->
+        captureEAndInsert(routePrefix, call, table, post)
+    }
+    private suspend fun <E : Any> captureEAndInsert(routePrefix: String, call: ApplicationCall, table: Table<E, *>, post: ValuesMap) {
+        val new = table.createFromMap(post.toStringMap())
+        table.save(new)
+        call.respondRedirect("$routePrefix/${table.route}/list")
     }
 
     private suspend fun edit(
@@ -93,20 +127,17 @@ class Crud(
     ) = findOneAndRun(call, table, recordIdStr) { record ->
 
         val updated = table.toMap(record) + post.toStringMap()
-
-        call.respondHtml {
-            val recordTitle = table.getTitle(record)
-            template(
-                    this,
-                    "Editing $recordTitle in ${table.displayName} — Crud",
-                    Content.Form(
-                            recordTitle,
-                            Content.Form.Mode.Edit,
-                            table.cols.map { it.control to updated[it.name]!! },
-                            "$routePrefix/${table.route}/review/${table.getId(record)}"
-                    )
-            )
-        }
+        val recordTitle = table.getTitle(record)
+        returnForm(
+                call, template,
+                "Editing $recordTitle in ${table.displayName} — Crud", recordTitle,
+                Content.Form.Mode.Edit,
+                table.cols.asSequence()
+                        .filter { it.editControl != null }
+                        .map { it.editControl!! to updated[it.name]!! }
+                        .toList(),
+                "$routePrefix/${table.route}/review/${table.getId(record)}"
+        )
     }
 
     private suspend fun review(routePrefix: String, template: ModuleTemplate, call: ApplicationCall, tableRoute: String, recordIdStr: String, post: ValuesMap) = findTableAndRun(call, tableRoute) { table ->
@@ -125,7 +156,7 @@ class Crud(
                         Content.Review(
                                 table.getTitle(newRecord),
                                 map.toMap().map { (key, values) ->
-                                    Triple(key, table.cols.single { it.name == key }.control.title, values.single())
+                                    Triple(key, table.cols.single { it.name == key }.editControl!!.title, values.single())
                                 },
                                 "$routePrefix/${table.route}/edit/${table.getId(newRecord)}",
                                 "$routePrefix/${table.route}/update/${table.getId(newRecord)}"
@@ -135,10 +166,8 @@ class Crud(
         }
     }
 
-    private suspend fun update(routePrefix: String, call: ApplicationCall, tableRoute: String, recordIdStr: String, post: ValuesMap) {
-        findTableAndRun(call, tableRoute) { table ->
-            captureEIdAndPatch(routePrefix, call, table, recordIdStr, post)
-        }
+    private suspend fun update(routePrefix: String, call: ApplicationCall, tableRoute: String, recordIdStr: String, post: ValuesMap) = findTableAndRun(call, tableRoute) { table ->
+        captureEIdAndPatch(routePrefix, call, table, recordIdStr, post)
     }
     private suspend fun <E : Any, ID> captureEIdAndPatch(
             routePrefix: String, call: ApplicationCall, table: Table<E, ID>, recordIdStr: String, post: ValuesMap
@@ -163,6 +192,17 @@ class Crud(
                 ?: return call.respondText("Item was not found", ContentType.Text.Plain, HttpStatusCode.NotFound)
 
         code(item)
+    }
+
+    private suspend fun returnForm(
+            call: ApplicationCall, template: ModuleTemplate,
+            title: String, formTitle: String,
+            mode: Content.Form.Mode, controlsAndValues: List<Pair<Control, String>>, submitAction: String
+    ) = call.respondHtml {
+        template(
+                this, title,
+                Content.Form(formTitle, mode, controlsAndValues, submitAction)
+        )
     }
 
     private fun <E : Any> Table<E, *>.toMap(e: E) = cols.associateBy({ it.name }, { it.getValue(e) })

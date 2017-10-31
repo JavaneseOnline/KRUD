@@ -38,8 +38,8 @@ object KrudTestServer {
                                 ),
                                 listOf(Item(UUID(0L, 0L), "Whatever")),
                                 { map -> Item(
-                                        id = UUID.fromString(map["id"]!!),
-                                        name = map["name"]!!
+                                        id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
+                                        name = map["name"]!! // ^ update             ^ create
                                 ) }
                         )
                 ))

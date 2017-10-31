@@ -61,7 +61,8 @@ class InMemoryTable<E : Any, ID>(
 interface Col<OWNR : Any> {
     fun getValue(owner: OWNR): String
     val name: String
-    val control: Control
+    val createControl: Control?
+    val editControl: Control?
 }
 
 class IdCol<OWNR : Any, ID>(
@@ -71,7 +72,8 @@ class IdCol<OWNR : Any, ID>(
 ): Col<OWNR> {
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
-    override val control: Control = TextInput(property.name, property.name, title, editable = false)
+    override val createControl: Control? get() = null
+    override val editControl: Control? = TextInput(property.name, property.name, title, editable = false)
 }
 
 class TextCol<OWNR : Any, T>(
@@ -81,5 +83,7 @@ class TextCol<OWNR : Any, T>(
 ) : Col<OWNR> {
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
-    override val control: Control = TextInput(property.name, property.name, title)
+    private val control: Control = TextInput(property.name, property.name, title)
+    override val createControl: Control? get() = control
+    override val editControl: Control? get() = control
 }
