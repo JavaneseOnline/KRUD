@@ -37,10 +37,13 @@ class Crud(
                 list(routePrefix, template, call, tableRoute = pSegm[0])
 
             method == HttpMethod.Get && pSegm.size == 3 && pSegm[1] == "edit"  ->   // GET /admin/{table}/edit/{id}/
-                edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2])
+                edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = ValuesMap.Empty)
 
             method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "review" -> // GET /admin/{table}/review/{id}/
                 review(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
+
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "edit" ->   // POST /admin/{table}/edit/{id}/
+                edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
 
             else ->
                 call.respondText("Not found.", ContentType.Text.Plain, HttpStatusCode.NotFound)
@@ -74,12 +77,22 @@ class Crud(
         )
     }
 
-    private suspend fun edit(routePrefix: String, template: ModuleTemplate, call: ApplicationCall, tableRoute: String, recordIdStr: String) = findTableAndRun(call, tableRoute) { table ->
-        captureEIdAndReturnEditForm(routePrefix, call, template, table, recordIdStr)
+    private suspend fun edit(
+            routePrefix: String, template: ModuleTemplate, call: ApplicationCall,
+            tableRoute: String, recordIdStr: String, post: ValuesMap
+    ) = findTableAndRun(call, tableRoute) { table ->
+        captureEIdAndReturnEditForm(routePrefix, call, template, table, recordIdStr, post)
     }
     private suspend fun <E : Any, ID> captureEIdAndReturnEditForm(
-            routePrefix: String, call: ApplicationCall, template: ModuleTemplate, table: Table<E, ID>, recordIdStr: String
+            routePrefix: String, call: ApplicationCall, template: ModuleTemplate,
+            table: Table<E, ID>, recordIdStr: String, post: ValuesMap
     ) = findOneAndRun(call, table, recordIdStr) { record ->
+
+        val recordMap =
+                table.cols.associateByTo(LinkedHashMap(), { it.name }, { it.getValue(record) })
+        val patch = post.toMap().mapValues { (_, v) -> v.single() }
+        val updated = recordMap + patch
+
         call.respondHtml {
             val recordTitle = table.getTitle(record)
             template(
@@ -88,8 +101,8 @@ class Crud(
                     Content.Form(
                             recordTitle,
                             Content.Form.Mode.Edit,
-                            "$routePrefix/${table.route}/review/${table.getId(record)}",
-                            table.cols.map { it.control to it.getValue(record) }
+                            table.cols.map { it.control to updated[it.name]!! },
+                            "$routePrefix/${table.route}/review/${table.getId(record)}"
                     )
             )
         }
@@ -110,10 +123,11 @@ class Crud(
                         "Reviewing ${table.getTitle(newRecord)} in ${table.displayName} — Crud",
                         Content.Review(
                                 table.getTitle(newRecord),
-                                "$routePrefix/${table.route}/update/${table.getId(newRecord)}",
                                 map.toMap().map { (key, values) ->
                                     Triple(key, table.cols.single { it.name == key }.control.title, values.single())
-                                }
+                                },
+                                "$routePrefix/${table.route}/edit/${table.getId(newRecord)}",
+                                "$routePrefix/${table.route}/update/${table.getId(newRecord)}"
                         )
                 )
             }

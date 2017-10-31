@@ -217,7 +217,7 @@ ul.sortable > li.placeholder {
                                 }
 
                                 is Content.Form -> {
-                                    blockWithTitleAndForm(content.mode.name, content.formAction) {
+                                    blockWithTitleAndForm(content.mode.name) {
 
                                         content.controlsAndValues.forEach { (ctl, value) ->
                                             renderControl(ctl, value)
@@ -225,7 +225,8 @@ ul.sortable > li.placeholder {
 
                                         div {
                                             button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                                +"Proceed"
+                                                formAction = content.reviewAction
+                                                +"Review"
                                             }
                                         }
                                     }
@@ -241,7 +242,7 @@ ul.sortable > li.placeholder {
                                 }
 
                                 is Content.Review -> {
-                                    blockWithTitleAndForm(content.title, content.formAction) {
+                                    blockWithTitleAndForm(content.title) {
                                         table("mdl-data-table mdl-js-data-table") {
                                             tbody {
                                                 content.namesTitlesValues.forEach { (name, title, value) ->
@@ -263,8 +264,15 @@ ul.sortable > li.placeholder {
 
                                         div {
                                             style = "margin-top: 16px"
+
                                             button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
-                                                +"Save (TODO)" // TODO
+                                                formAction = content.editAction
+                                                +"Edit"
+                                            }
+
+                                            button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
+                                                formAction = content.updateAction
+                                                +"Update (TODO)" // TODO
                                             }
                                         }
                                     }
@@ -365,12 +373,11 @@ ul.sortable > li.placeholder {
         +text
     }
 
-    private fun FlowContent.blockWithTitleAndForm(title: String, formAction: String, form: FORM.() -> Unit) {
+    private fun FlowContent.blockWithTitleAndForm(title: String, form: FORM.() -> Unit) {
         div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col") {
             h4("mdl-card__title") { +title }
             form(
                     method = FormMethod.post,
-                    action = formAction,
                     classes = "mdl-tooltip--large"
             ) {
                 form()
