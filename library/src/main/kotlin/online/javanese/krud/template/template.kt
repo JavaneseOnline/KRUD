@@ -34,7 +34,10 @@ sealed class Content {
             val controlsAndValues: List<Pair<Control, String>>,
             val submitAction: String
     ) : Content() {
-        enum class Mode { Create, Edit }
+        sealed class Mode(val name: String) {
+            object Create : Mode("Create")
+            class Edit(val removeAction: String) : Mode("Edit")
+        }
     }
 
     class Review(

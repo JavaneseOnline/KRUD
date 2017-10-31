@@ -32,28 +32,31 @@ class Crud(
     ) {
         val pSegm = pathSegments
         when {
-            method == HttpMethod.Get && pSegm.isEmpty() ->                          // GET /admin/
+            method == HttpMethod.Get && pSegm.isEmpty() ->                           // GET /admin/
                 index(routePrefix, template, call)
 
-            method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "list" ->    // GET /admin/{table}/list/
+            method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "list" ->     // GET /admin/{table}/list/
                 list(routePrefix, template, call, tableRoute = pSegm[0])
 
-            method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "create"  -> // GET /admin/{table}/create/
+            method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "create"  ->  // GET /admin/{table}/create/
                 create(routePrefix, template, call, tableRoute = pSegm[0])
 
             method == HttpMethod.Post && pSegm.size == 2 && pSegm[1] == "create"  -> // GET /admin/{table}/create/
                 insert(routePrefix, template, call, tableRoute = pSegm[0], post = post)
 
-            method == HttpMethod.Get && pSegm.size == 3 && pSegm[1] == "edit"  ->   // GET /admin/{table}/edit/{id}/
+            method == HttpMethod.Get && pSegm.size == 3 && pSegm[1] == "edit"  ->    // GET /admin/{table}/edit/{id}/
                 edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = ValuesMap.Empty)
 
-            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "review" -> // GET /admin/{table}/review/{id}/
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "review" ->  // POST /admin/{table}/review/{id}/
                 review(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
 
-            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "edit" ->   // POST /admin/{table}/edit/{id}/
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "delete" ->  // POST /admin/{table}/review/{id}/
+                delete(routePrefix, call, tableRoute = pSegm[0], recordIdStr = pSegm[2])
+
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "edit" ->    // POST /admin/{table}/edit/{id}/
                 edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
 
-            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "update" -> // POST /admin/{table}/update/{id}/
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "update" ->  // POST /admin/{table}/update/{id}/
                 update(routePrefix, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
 
             else ->
@@ -131,12 +134,12 @@ class Crud(
         returnForm(
                 call, template,
                 "Editing $recordTitle in ${table.displayName} — Crud", recordTitle,
-                Content.Form.Mode.Edit,
+                Content.Form.Mode.Edit("$routePrefix/${table.route}/delete/${table.getId(record)}/"),
                 table.cols.asSequence()
                         .filter { it.editControl != null }
                         .map { it.editControl!! to updated[it.name]!! }
                         .toList(),
-                "$routePrefix/${table.route}/review/${table.getId(record)}"
+                "$routePrefix/${table.route}/review/${table.getId(record)}/"
         )
     }
 
@@ -164,6 +167,16 @@ class Crud(
                 )
             }
         }
+    }
+
+    private suspend fun delete(
+            routePrefix: String, call: ApplicationCall, tableRoute: String, recordIdStr: String
+    ) = findTableAndRun(call, tableRoute) { table ->
+        captureEIdAndDelete(routePrefix, call, table, recordIdStr)
+    }
+    private suspend fun <E : Any, ID> captureEIdAndDelete(routePrefix: String, call: ApplicationCall, table: Table<E, ID>, recordIdStr: String) {
+        table.delete(table.stringToId(recordIdStr))
+        call.respondRedirect("$routePrefix/${table.route}/list/")
     }
 
     private suspend fun update(routePrefix: String, call: ApplicationCall, tableRoute: String, recordIdStr: String, post: ValuesMap) = findTableAndRun(call, tableRoute) { table ->

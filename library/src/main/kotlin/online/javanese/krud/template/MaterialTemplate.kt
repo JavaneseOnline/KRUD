@@ -235,18 +235,19 @@ ul.sortable > li.placeholder {
                                             button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
                                                 formAction = content.submitAction
                                                 +when (content.mode) {
-                                                    Content.Form.Mode.Edit -> "Review"
-                                                    Content.Form.Mode.Create -> "Create"
+                                                    is Content.Form.Mode.Edit -> "Review"
+                                                    is Content.Form.Mode.Create -> "Create"
                                                 }
                                             }
 
-                                            /*if (content.mode == Content.Form.Mode.Edit) {
+                                            if (content.mode is Content.Form.Mode.Edit) {
                                                 button(type = ButtonType.submit, classes = raisedAccentedButtonClasses) {
                                                     style = "margin-left: 16px"
+                                                    formAction = content.mode.removeAction
                                                     onClick = "return confirm('O RLY?');"
                                                     +"Remove"
                                                 }
-                                            }*/
+                                            }
                                         }
                                     }
                                 }

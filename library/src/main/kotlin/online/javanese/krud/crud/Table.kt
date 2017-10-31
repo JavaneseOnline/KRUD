@@ -14,6 +14,7 @@ interface Table<E : Any, ID> {
     fun findAll(): List<E>
     fun findOne(id: ID): E?
     fun save(e: E)
+    fun delete(id: ID)
 
     fun getId(e: E): ID
     fun getTitle(e: E): String
@@ -46,6 +47,11 @@ class InMemoryTable<E : Any, ID>(
             val idx = items.indexOfFirst { idOf(it) == id }
             val updated = if (idx < 0) items + e else ArrayList(items).also { it[idx] = e }
             unmodifiableList(updated)
+        }
+    }
+    override fun delete(id: ID) {
+        itemsRef.updateAndGet { items ->
+            unmodifiableList(items.filter { idOf(it) != id })
         }
     }
 
