@@ -28,6 +28,12 @@ sealed class Content {
             val links: List<Link>
     ) : Content()
 
+    class SortableLinkList(
+            val title: String,
+            val linksAndIds: List<Pair<Link, String?>>,
+            val updateAction: String
+    ) : Content()
+
     class Form(
             val title: String,
             val mode: Mode,

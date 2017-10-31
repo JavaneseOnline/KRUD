@@ -15,6 +15,7 @@ interface Table<E : Any, ID> {
     fun findOne(id: ID): E?
     fun save(e: E)
     fun delete(id: ID)
+    val sort: Sort<ID>
 
     fun getId(e: E): ID
     fun getTitle(e: E): String
@@ -22,6 +23,13 @@ interface Table<E : Any, ID> {
     fun stringToId(s: String): ID
     val cols: List<Col<E>>
     fun createFromMap(map: Map<String, String>): E
+}
+
+sealed class Sort<in ID> {
+    object NoneOrImplicit : Sort<Any?>()
+    abstract class Explicit<in ID> : Sort<ID>() {
+        abstract fun updateOrder(newOrder: List<ID>)
+    }
 }
 
 class InMemoryTable<E : Any, ID>(
@@ -32,7 +40,8 @@ class InMemoryTable<E : Any, ID>(
         private val stringToId: (String) -> ID,
         cols: List<Col<E>>,
         items: List<E>,
-        private val fromMap: (Map<String, String>) -> E
+        private val fromMap: (Map<String, String>) -> E,
+        sortable: Boolean
 ) : Table<E, ID> {
 
     private val itemsRef = AtomicReference<List<E>>(unmodifiableList(items.toList()))
@@ -53,6 +62,26 @@ class InMemoryTable<E : Any, ID>(
         itemsRef.updateAndGet { items ->
             unmodifiableList(items.filter { idOf(it) != id })
         }
+    }
+
+    override val sort: Sort<ID> = if (sortable) {
+        object : Sort.Explicit<ID>() {
+            override fun updateOrder(newOrder: List<ID>) {
+                itemsRef.updateAndGet { items ->
+
+                    val sorted = newOrder.mapTo(ArrayList(items.size)) { id -> items.single { idOf(it) == id } }
+                    if (newOrder.size != items.size) {
+                        val unsorted = items.toMutableList()
+                        unsorted.removeAll(sorted)
+                        sorted.addAll(unsorted)
+                    }
+
+                    unmodifiableList(sorted)
+                }
+            }
+        }
+    } else {
+        Sort.NoneOrImplicit
     }
 
     override fun getId(e: E): ID = idOf(e)

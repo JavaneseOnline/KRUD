@@ -33,8 +33,9 @@ class MaterialTemplate(
                 // <link rel="stylesheet" th:href="@{/sandbox/codemirror_ambiance.min.css}" />
                 styleLink("https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.css")
                 styleLink("$staticPath/admin-material.min.css")
-                style(content =
-""".demo-layout .demo-header .mdl-textfield {
+                style {
+                    unsafe { // todo: move out these styles
++""".demo-layout .demo-header .mdl-textfield {
     padding: 0;
     margin-top: 41px;
 }
@@ -120,11 +121,13 @@ class MaterialTemplate(
     margin-bottom: 0;
 }
 ul.sortable > li.placeholder {
-    height: 3em;
+    height: 3.5em;
     margin: 0;
     padding: 0;
-    background-color: rgba(51, 102, 170, .2);
-}""")
+    background-color: rgba(55, 71, 79, .1);
+}"""
+                    }
+                }
             }
 
             body {
@@ -203,25 +206,32 @@ ul.sortable > li.placeholder {
 
                             when (content) {
                                 is Content.LinkList -> {
-                                    div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--4-col") {
-                                        h4("mdl-card__title") { +content.title }
+                                    blockWithList(content.title, content.links, "", {}, { link ->
+                                        a(href = link.href, classes = "mdl-navigation__link" +
+                                                if (link.badge != null) " mdl-badge" else "") {
 
-                                        ul("mdl-list m-v-0 p-v-0") {
-                                            content.links.forEach { link ->
-                                                li("mdl-list__item") {
-                                                    // for each entity class
-                                                    a(href = link.href, classes = "mdl-navigation__link" +
-                                                            if (link.badge != null) " mdl-badge" else "") {
+                                            link.badge?.let { attributes.put("data-badge", it) }
 
-                                                        link.badge?.let { attributes.put("data-badge", it) }
-
-                                                        // link to class page
-                                                        +link.text
-                                                    }
-                                                }
-                                            }
+                                            // link to class page
+                                            +link.text
                                         }
-                                    }
+                                    })
+                                }
+
+                                is Content.SortableLinkList -> {
+                                    blockWithList(content.title, content.linksAndIds, "sortable", {
+                                        attributes["data-action"] = content.updateAction
+                                    }, { (link, id) ->
+                                        id?.let { attributes["data-id"] = it }
+
+                                        a(href = link.href, classes = "mdl-navigation__link" +
+                                                if (link.badge != null) " mdl-badge" else "") {
+                                            link.badge?.let { attributes["data-badge"] = it }
+
+                                            // link to class page
+                                            +link.text
+                                        }
+                                    })
                                 }
 
                                 is Content.Form -> {
@@ -298,8 +308,26 @@ ul.sortable > li.placeholder {
 //                script(src = "$staticPath/codemirror_html.min.js") // todo: move to extension
                 script(src = "http://zeptojs.com/zepto.min.js")
                 script(src = "//cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.js")
-//                script(src = "$staticPath/zepto-dnd.min.js")
+                script(src = "$staticPath/zepto-dnd.min.js")
                 script(src = "//code.getmdl.io/1.1.3/material.min.js")
+
+                script {
+                    unsafe {
++"""$('.sortable').sortable().on('sortable:change', function() {
+    var list = [];
+    var ${'$'}this = $(this);
+    ${'$'}this.children().each(function() {
+        var id = $(this).data('id');
+        if (typeof id !== 'undefined') {
+            list.push(id);
+        }
+    });
+    $.post(${'$'}this.data('action'), {
+        ids: list
+    });
+});"""
+                    }
+                }
 /*
                 <script type="text/javascript" th:inline="javascript">
                 function insertAtCursor(field, value) {
@@ -347,22 +375,6 @@ ul.sortable > li.placeholder {
                     textarea.value = inst.getValue();
                 });
             });
-                $('.sortable').sortable().on('sortable:change', function() {
-                var list = [];
-                $(this).children().each(function() {
-                var id = $(this).data('id');
-                if (typeof id !== 'undefined') {
-                list.push(id);
-            }
-            });
-                $.post('/admin/sort/', {
-                clazz: /*[[${currentEntityClass}]]*/ "none",
-                order: list,
-                /*[[${_csrf.parameterName}]]*/ "param"
-                :
-                /*[[${_csrf.token}]]*/ "token"
-            });
-            });
                 </script>
 
                 <th:block th:utext="${presenter.getAdditionalMarkup(_csrf)}" />
@@ -393,6 +405,24 @@ ul.sortable > li.placeholder {
                     classes = "mdl-tooltip--large"
             ) {
                 form()
+            }
+        }
+    }
+
+    private inline fun <T> FlowContent.blockWithList(
+            title: String, items: List<T>, ulClasses: String,
+            crossinline configureList: UL.() -> Unit, crossinline renderItem: LI.(T) -> Unit
+    ) {
+        div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--4-col") {
+            h4("mdl-card__title") { +title }
+
+            ul("mdl-list m-v-0 p-v-0${if (ulClasses.isNotBlank()) ' ' + ulClasses else ""}") {
+                configureList()
+                items.forEach { item ->
+                    li("mdl-list__item") {
+                        renderItem(this, item)
+                    }
+                }
             }
         }
     }

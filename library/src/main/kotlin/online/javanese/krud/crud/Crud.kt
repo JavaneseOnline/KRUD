@@ -38,6 +38,9 @@ class Crud(
             method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "list" ->     // GET /admin/{table}/list/
                 list(routePrefix, template, call, tableRoute = pSegm[0])
 
+            method == HttpMethod.Post && pSegm.size == 2 && pSegm[1] == "reorder" -> // POST /admin/{table}/reorder/
+                reorder(routePrefix, call, tableRoute = pSegm[0], post = post)
+
             method == HttpMethod.Get && pSegm.size == 2 && pSegm[1] == "create"  ->  // GET /admin/{table}/create/
                 create(routePrefix, template, call, tableRoute = pSegm[0])
 
@@ -81,16 +84,38 @@ class Crud(
     private suspend fun <E : Any> captureEAndReturnList(
             routePrefix: String, template: ModuleTemplate, call: ApplicationCall, table: Table<E, *>
     ) = call.respondHtml {
+        val all = table.findAll()
+        val createNew = Link("$routePrefix/${table.route}/create/", " + create new")
         template(
                 this,
                 "${table.displayName} — Crud",
-                Content.LinkList(
-                        table.displayName,
-                        table.findAll().map {
-                            Link("$routePrefix/${table.route}/edit/${table.getId(it)}/", table.getTitle(it).fixIfBlank())
-                        } + Link("$routePrefix/${table.route}/create/", " + create new")
-                )
+                when (table.sort) {
+                    is Sort.NoneOrImplicit -> Content.LinkList(
+                            table.displayName,
+                            all.map { createLink(routePrefix, table, it) } + createNew
+                    )
+                    is Sort.Explicit<*> -> Content.SortableLinkList(
+                            table.displayName,
+                            all.map { createLink(routePrefix, table, it) to table.getId(it).toString() } + (createNew to null),
+                            "$routePrefix/${table.route}/reorder/"
+                    )
+                }
         )
+    }
+    private fun <T : Any> createLink(routePrefix: String, table: Table<T, *>, t: T) =
+            Link("$routePrefix/${table.route}/edit/${table.getId(t)}/", table.getTitle(t).fixIfBlank())
+
+    private suspend fun reorder(
+            routePrefix: String, call: ApplicationCall, tableRoute: String, post: ValuesMap
+    ) = findTableAndRun(call, tableRoute) { table ->
+        captureIdAndReorder(routePrefix, call, table, post)
+    }
+    private suspend fun <ID> captureIdAndReorder(routePrefix: String, call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
+        val sort = table.sort as Sort.Explicit<ID>
+        val newOrder = post.getAll("ids[]")!!.map(table::stringToId)
+        sort.updateOrder(newOrder)
+
+        call.respondText("", status = HttpStatusCode.NoContent)
     }
 
     private suspend fun create(
@@ -115,7 +140,7 @@ class Crud(
     private suspend fun <E : Any> captureEAndInsert(routePrefix: String, call: ApplicationCall, table: Table<E, *>, post: ValuesMap) {
         val new = table.createFromMap(post.toStringMap())
         table.save(new)
-        call.respondRedirect("$routePrefix/${table.route}/list")
+        call.respondRedirect("$routePrefix/${table.route}/list/")
     }
 
     private suspend fun edit(

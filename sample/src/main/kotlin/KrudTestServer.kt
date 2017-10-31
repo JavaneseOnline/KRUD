@@ -1,10 +1,10 @@
 import online.javanese.krud.AdminPanel
-import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.RoutedModule
 import online.javanese.krud.crud.Crud
 import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
+import online.javanese.krud.template.MaterialTemplate
 import org.jetbrains.ktor.content.files
 import org.jetbrains.ktor.content.static
 import org.jetbrains.ktor.content.staticRootFolder
@@ -40,7 +40,8 @@ object KrudTestServer {
                                 { map -> Item(
                                         id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
                                         name = map["name"]!! // ^ update             ^ create
-                                ) }
+                                ) },
+                                sortable = true
                         )
                 ))
         )
@@ -49,7 +50,7 @@ object KrudTestServer {
 
             routing {
                 route("/admin/") {
-//                    intercept(ApplicationCallPipeline.Infrastructure) { … }
+//                    intercept(ApplicationCallPipeline.Infrastructure) { … } TODO
 
                     get("") {
                         call.respondRedirect("/admin/crud/")
