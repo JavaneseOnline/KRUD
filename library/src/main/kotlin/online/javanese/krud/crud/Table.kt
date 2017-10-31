@@ -2,7 +2,8 @@ package online.javanese.krud.crud
 
 import online.javanese.krud.template.Control
 import online.javanese.krud.template.TextInput
-import org.jetbrains.ktor.util.ValuesMap
+import java.util.Collections.unmodifiableList
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty1
 
 interface Table<E : Any, ID> {
@@ -12,13 +13,14 @@ interface Table<E : Any, ID> {
 
     fun findAll(): List<E>
     fun findOne(id: ID): E?
+    fun save(e: E)
 
     fun getId(e: E): ID
     fun getTitle(e: E): String
 
     fun stringToId(s: String): ID
     val cols: List<Col<E>>
-    fun createFromMap(map: ValuesMap): E
+    fun createFromMap(map: Map<String, String>): E
 }
 
 class InMemoryTable<E : Any, ID>(
@@ -27,21 +29,32 @@ class InMemoryTable<E : Any, ID>(
         private val idOf: (E) -> ID,
         private val titleOf: (E) -> String,
         private val stringToId: (String) -> ID,
-        override val cols: List<Col<E>>,
-        private val items: List<E>,
-        private val fromMap: (ValuesMap) -> E
+        cols: List<Col<E>>,
+        items: List<E>,
+        private val fromMap: (Map<String, String>) -> E
 ) : Table<E, ID> {
 
-    override val count: Int get() = items.size
+    private val itemsRef = AtomicReference<List<E>>(unmodifiableList(items.toList()))
 
-    override fun findAll(): List<E> = items
-    override fun findOne(id: ID): E? = items.singleOrNull { idOf(it) == id }
+    override val count: Int get() = itemsRef.get().size
+
+    override fun findAll(): List<E> = itemsRef.get()
+    override fun findOne(id: ID): E? = itemsRef.get().singleOrNull { idOf(it) == id }
+    override fun save(e: E) {
+        val id = idOf(e)
+        itemsRef.updateAndGet { items ->
+            val idx = items.indexOfFirst { idOf(it) == id }
+            val updated = if (idx < 0) items + e else ArrayList(items).also { it[idx] = e }
+            unmodifiableList(updated)
+        }
+    }
 
     override fun getId(e: E): ID = idOf(e)
     override fun getTitle(e: E): String = titleOf(e)
 
     override fun stringToId(s: String): ID = stringToId.invoke(s)
-    override fun createFromMap(map: ValuesMap): E = fromMap(map)
+    override val cols: List<Col<E>> = cols.toList()
+    override fun createFromMap(map: Map<String, String>): E = fromMap(map)
 
 }
 

@@ -272,7 +272,7 @@ ul.sortable > li.placeholder {
 
                                             button(type = ButtonType.submit, classes = "mdl-button mdl-js-button") {
                                                 formAction = content.updateAction
-                                                +"Update (TODO)" // TODO
+                                                +"Update"
                                             }
                                         }
                                     }

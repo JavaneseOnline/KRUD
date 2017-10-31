@@ -10,6 +10,7 @@ import org.jetbrains.ktor.html.respondHtml
 import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
+import org.jetbrains.ktor.response.respondRedirect
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.util.ValuesMap
 import org.jetbrains.ktor.util.toMap
@@ -44,6 +45,9 @@ class Crud(
 
             method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "edit" ->   // POST /admin/{table}/edit/{id}/
                 edit(routePrefix, template, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
+
+            method == HttpMethod.Post && pSegm.size == 3 && pSegm[1] == "update" -> // POST /admin/{table}/update/{id}/
+                update(routePrefix, call, tableRoute = pSegm[0], recordIdStr = pSegm[2], post = post)
 
             else ->
                 call.respondText("Not found.", ContentType.Text.Plain, HttpStatusCode.NotFound)
@@ -88,10 +92,7 @@ class Crud(
             table: Table<E, ID>, recordIdStr: String, post: ValuesMap
     ) = findOneAndRun(call, table, recordIdStr) { record ->
 
-        val recordMap =
-                table.cols.associateByTo(LinkedHashMap(), { it.name }, { it.getValue(record) })
-        val patch = post.toMap().mapValues { (_, v) -> v.single() }
-        val updated = recordMap + patch
+        val updated = table.toMap(record) + post.toStringMap()
 
         call.respondHtml {
             val recordTitle = table.getTitle(record)
@@ -116,7 +117,7 @@ class Crud(
             table: Table<E, ID>, recordIdStr: String, map: ValuesMap
     ) {
         findOneAndRun(call, table, recordIdStr) { _ -> // TODO: calculate diff
-            val newRecord = table.createFromMap(map)
+            val newRecord = table.createFromMap(map.toStringMap())
             call.respondHtml {
                 template(
                         this,
@@ -134,6 +135,21 @@ class Crud(
         }
     }
 
+    private suspend fun update(routePrefix: String, call: ApplicationCall, tableRoute: String, recordIdStr: String, post: ValuesMap) {
+        findTableAndRun(call, tableRoute) { table ->
+            captureEIdAndPatch(routePrefix, call, table, recordIdStr, post)
+        }
+    }
+    private suspend fun <E : Any, ID> captureEIdAndPatch(
+            routePrefix: String, call: ApplicationCall, table: Table<E, ID>, recordIdStr: String, post: ValuesMap
+    ) = findOneAndRun(call, table, recordIdStr) { record ->
+        val updatedMap = table.toMap(record) + post.toStringMap()
+        val updatedE = table.createFromMap(updatedMap)
+        table.save(updatedE)
+
+        call.respondRedirect("$routePrefix/${table.route}/list/")
+    }
+
     private inline suspend fun findTableAndRun(call: ApplicationCall, tableRoute: String, code: (Table<*, *>) -> Unit) {
         val table = tables.firstOrNull { it.route == tableRoute }
                 ?: return call.respondText("Not found", ContentType.Text.Plain, HttpStatusCode.NotFound)
@@ -148,5 +164,8 @@ class Crud(
 
         code(item)
     }
+
+    private fun <E : Any> Table<E, *>.toMap(e: E) = cols.associateBy({ it.name }, { it.getValue(e) })
+    private fun ValuesMap.toStringMap() = toMap().mapValues { (_, v) -> v.single() }
 
 }
