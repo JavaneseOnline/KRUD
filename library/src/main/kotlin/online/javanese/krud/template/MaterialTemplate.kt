@@ -135,7 +135,7 @@ ul.sortable > li.placeholder {
                             }
 //                            }
 
-                            div("mdl-layout-spacer")
+                            /*div("mdl-layout-spacer")
 
                             div("mdl-textfield mdl-js-textfield mdl-textfield--expandable") {
 
@@ -172,7 +172,7 @@ ul.sortable > li.placeholder {
                                 li("mdl-menu__item") { +"About" }
                                 li("mdl-menu__item") { +"Contact" }
                                 li("mdl-menu__item") { +"Legal information" }
-                            }
+                            }*/
                         }
                     }
 
@@ -184,12 +184,12 @@ ul.sortable > li.placeholder {
                                 a(href = it.href, classes = "mdl-navigation__link") { +it.text }
                             }
 
-                            div("mdl-layout-spacer")
+                            /*div("mdl-layout-spacer")
 
                             a(classes = "mdl-navigation__link") {
                                 materialIcon("help_outline", "", "mdl-color-text--blue-grey-400")
                                 span("visuallyhidden") { +"Help" }
-                            }
+                            }*/
                         }
                     }
 
