@@ -26,6 +26,14 @@ object KrudTestServer {
     @JvmStatic
     fun main(args: Array<String>) {
 
+        check(args.size == 2 && args[0] == "--static") {
+            "Must specify static resources dir. " +
+                    "Sample usage: java -Xms8M -Xmx8M -Xss180K " +
+                    "-jar KrudTestServer.jar " +
+                    "--static \"/home/<user>/IdeaProjects/krud/krud-core/src/main/resources/static\""
+        }
+        val staticResDir = args[1]
+
         val admin = AdminPanel(
                 "/admin",
                 MaterialTemplate("/admin", "/admin/path/to/static/resources"),
@@ -79,7 +87,7 @@ object KrudTestServer {
                     }
 
                     static("path/to/static/resources") {
-                        val localStaticDirFile = File("/home/miha/IdeaProjects/krud/library/src/main/resources/static")
+                        val localStaticDirFile = File(staticResDir)
                         staticRootFolder = localStaticDirFile.parentFile
                         files(localStaticDirFile.name)
                     }
