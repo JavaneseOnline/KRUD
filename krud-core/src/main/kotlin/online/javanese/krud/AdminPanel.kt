@@ -9,7 +9,9 @@ import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.util.ValuesMap
 
-
+/**
+ * This is a base, a host, a router for [Module]s.
+ */
 class AdminPanel(
         private val routePrefix: String,
         private val template: AdminTemplate,
@@ -32,6 +34,9 @@ class AdminPanel(
             }
     )
 
+    /**
+     * Proxies call to according [Module], if any.
+     */
     suspend fun request(
             call: ApplicationCall,
             method: HttpMethod,
