@@ -1,9 +1,6 @@
 package online.javanese.krud
 
-import online.javanese.krud.template.ModuleTemplate
 import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.util.ValuesMap
 
 /**
  * Describes a part of admin panel.
@@ -17,15 +14,12 @@ interface Module {
     val name: String
 
     /**
-     * Handle a request. Finally, must call `call.respond...`.
+     * Handle a request. Finally, implementation must call `call.respond...`.
      */
     suspend fun request(
+            env: WebEnv,
             call: ApplicationCall,
-            routePrefix: String,
-            template: ModuleTemplate,
-            method: HttpMethod,
-            pathSegments: List<String>,
-            query: ValuesMap,
-            post: ValuesMap
+            httpRequest: HttpRequest
     )
+
 }

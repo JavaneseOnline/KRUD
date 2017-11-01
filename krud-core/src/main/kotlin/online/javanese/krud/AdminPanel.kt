@@ -22,6 +22,16 @@ class AdminPanel(
 
     private val sidebarLinks = modules.map { Link("$routePrefix/${it.route}/", it.module.name) }
 
+    private val webEnvs = modules.associateBy(
+            RoutedModule::module,
+            {
+                WebEnv(
+                        "$routePrefix/${it.route}",
+                        { root, titleText, content -> template(root, titleText, sidebarLinks, content) }
+                )
+            }
+    )
+
     suspend fun request(
             call: ApplicationCall,
             method: HttpMethod,
@@ -35,11 +45,7 @@ class AdminPanel(
 
         val module = routedModule.module
 
-        module.request(call,
-                "$routePrefix/${routedModule.route}",
-                { root, titleText, content -> template(root, titleText, sidebarLinks, content) },
-                method, pathSegments, query, post
-        )
+        module.request(webEnvs[module]!!, call, HttpRequest(method, pathSegments, query = query, post = post))
     }
 
 }
