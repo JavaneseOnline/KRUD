@@ -6,25 +6,85 @@ import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty1
 
+/**
+ * Represents a table of [E] objects with [ID] primary key.
+ */
 interface Table<E : Any, ID> {
+    /**
+     * Url segment
+     */
     val route: String
+
+    /**
+     * User-visible name which will be shown in a list
+     */
     val displayName: String
+
+    /**
+     * Total number of [E]s
+     */
     val count: Int
 
+
+
+    /**
+     * Find all [E]s, which will be shown to user as a list.
+     */
     fun findAll(): List<E>
+
+    /**
+     * Find a single [E] by [ID], or return `null`, if there's no such element
+     */
     fun findOne(id: ID): E?
+
+    /**
+     * Persist [E]
+     * @see createFromMap for details
+     */
     fun save(e: E)
+
+    /**
+     * Delete [E]. Actually, I hope you'll just set deleted flag
+     */
     fun delete(id: ID)
+
+    /**
+     * If this table is explicitly sorted,
+     * must return [Sort.Explicit] to allow manual reordering
+     */
     val sort: Sort<ID>
 
+
+    /**
+     * Extract primary key from [E]
+     */
     fun getId(e: E): ID
+
+    /**
+     * Extract title, which will be shown to user, from [E]
+     */
     fun getTitle(e: E): String
 
+    /**
+     * Parse [String] to [ID]
+     */
     fun stringToId(s: String): ID
+
+    /**
+     * Return all available columns
+     */
     val cols: List<Col<E>>
+
+    /**
+     * Create new [E] from map.
+     * If contains no ID mapping, then it's for insertion. It's for update otherwise.
+     */
     fun createFromMap(map: Map<String, String>): E
 }
 
+/**
+ * Either this table can be sorted by user or not.
+ */
 sealed class Sort<in ID> {
     object NoneOrImplicit : Sort<Any?>()
     abstract class Explicit<in ID> : Sort<ID>() {
@@ -32,6 +92,9 @@ sealed class Sort<in ID> {
     }
 }
 
+/**
+ * Table which is being hold in memory, not persisted.
+ */
 class InMemoryTable<E : Any, ID>(
         override val route: String,
         override val displayName: String,
@@ -93,13 +156,34 @@ class InMemoryTable<E : Any, ID>(
 
 }
 
+/**
+ * Represents a table column.
+ */
 interface Col<OWNR : Any> {
+    /**
+     * Returns value which user will see and, if acceptable, edit
+     */
     fun getValue(owner: OWNR): String
+
+    /**
+     * Human-readable label
+     */
     val name: String
+
+    /**
+     * UI control which will be user in Create form
+     */
     val createControl: Control?
+
+    /**
+     * UI control which will be user in Edit form
+     */
     val editControl: Control?
 }
 
+/**
+ * Primary key column. Read-only <input type=text>
+ */
 class IdCol<OWNR : Any, ID>(
         private val property: KProperty1<OWNR, ID>,
         title: String = "ID",
@@ -111,6 +195,9 @@ class IdCol<OWNR : Any, ID>(
     override val editControl: Control? = TextInput(property.name, property.name, title, editable = false)
 }
 
+/**
+ * Ordinary text column. Editable <input type=text>
+ */
 class TextCol<OWNR : Any, T>(
         private val property: KProperty1<OWNR, T>,
         title: String = property.name.capitalize(),
