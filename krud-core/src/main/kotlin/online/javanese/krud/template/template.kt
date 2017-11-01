@@ -21,6 +21,9 @@ class Link(
         val badge: String? = null
 )
 
+/**
+ * Represents content which can be renderen in a template.
+ */
 sealed class Content {
 
     class LinkList(
@@ -55,6 +58,10 @@ sealed class Content {
 
 }
 
+
+/**
+ * Represents a UI control.
+ */
 interface Control {
     val id: String
     val type: Type

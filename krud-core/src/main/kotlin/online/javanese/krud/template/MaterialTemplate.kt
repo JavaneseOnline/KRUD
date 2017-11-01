@@ -2,6 +2,9 @@ package online.javanese.krud.template
 
 import kotlinx.html.*
 
+/**
+ * Template implementation based on Material Design Lite
+ */
 class MaterialTemplate(
         private val homePath: String,
         private val staticPath: String
