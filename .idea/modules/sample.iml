@@ -42,7 +42,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="library" scope="PROVIDED" />
+    <orderEntry type="module" module-name="krud-core" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains.ktor:ktor-netty:0.4.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains.ktor:ktor-hosts-common:0.4.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains.ktor:ktor-html-builder:0.4.0" level="project" />
@@ -66,7 +66,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.netty:netty-resolver:4.1.12.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.netty:netty-common:4.1.12.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
-    <orderEntry type="module" module-name="library" scope="RUNTIME" />
+    <orderEntry type="module" module-name="krud-core" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.ktor:ktor-netty:0.4.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.ktor:ktor-hosts-common:0.4.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.ktor:ktor-html-builder:0.4.0" level="project" />
@@ -90,7 +90,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.netty:netty-resolver:4.1.12.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.netty:netty-common:4.1.12.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
-    <orderEntry type="module" module-name="library" scope="TEST" />
+    <orderEntry type="module" module-name="krud-core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.ktor:ktor-netty:0.4.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.ktor:ktor-hosts-common:0.4.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.ktor:ktor-html-builder:0.4.0" level="project" />

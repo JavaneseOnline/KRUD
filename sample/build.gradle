@@ -27,7 +27,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains.ktor:ktor-core:$ktor_version"
     compile "org.jetbrains.ktor:ktor-netty:$ktor_version"
-    compile project(':library')
+    compile project(':krud-core')
 }
 
 kotlin {
