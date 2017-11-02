@@ -26,29 +26,43 @@ class Link(
  */
 sealed class Content {
 
+    /**
+     * Just a list of links.
+     */
     class LinkList(
             val title: String,
             val links: List<Link>
     ) : Content()
 
+    /**
+     * A list of links which can be sorted.
+     * 'ids[]' parameter will be POSTed to [updateAction] endpoint.
+     */
     class SortableLinkList(
             val title: String,
             val linksAndIds: List<Pair<Link, String?>>,
             val updateAction: String
     ) : Content()
 
+    /**
+     * Represents HTML form.
+     * Method is POST (in forms, GET is stupid, other are not allowed.
+     */
     class Form(
             val title: String,
             val mode: Mode,
             val controlsAndValues: List<Pair<Control, String>>,
             val submitAction: String
     ) : Content() {
-        sealed class Mode(val name: String) {
-            object Create : Mode("Create")
-            class Edit(val removeAction: String) : Mode("Edit")
+        sealed class Mode {
+            object Create : Mode()
+            class Edit(val removeAction: String) : Mode()
         }
     }
 
+    /**
+     * Show review table before committing changes.
+     */
     class Review(
             val title: String,
             val namesTitlesValues: List<Triple<String, String, String>>,
@@ -77,6 +91,9 @@ interface Control {
     }
 }
 
+/**
+ * A plain HTML Input tag.
+ */
 class TextInput(
         private val name: String,
         override val id: String,
@@ -102,6 +119,9 @@ class TextInput(
     }
 }
 
+/**
+ * Multiline HTML TextArea tag.
+ */
 class TextArea(
         private val name: String,
         override val id: String,
@@ -128,6 +148,10 @@ class TextArea(
     }
 }
 
+/**
+ * HTML TextArea which will be replaced
+ * with CodeMirror editor on the client-side.
+ */
 class HtmlCodeMirror(
         private val name: String,
         override val id: String,
@@ -169,6 +193,9 @@ class HtmlCodeMirror(
     }
 }
 
+/**
+ * No control. For fields which are not editable.
+ */
 object EmptyControl : Control {
     override val id: String get() = "unused"
     override val type: Control.Type get() = Control.Type.Custom // don't decorate me

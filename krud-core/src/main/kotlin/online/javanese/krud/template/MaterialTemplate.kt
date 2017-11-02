@@ -249,7 +249,7 @@ ul.sortable > li.placeholder {
                                 }
 
                                 is Content.Form -> {
-                                    blockWithTitleAndForm(content.mode.name) {
+                                    blockWithTitleAndForm(content.title) {
 
                                         content.controlsAndValues.forEach { (ctl, value) ->
                                             renderControl(ctl, value)
