@@ -22,32 +22,31 @@ class Crud(
         private vararg val tables: Table<*, *>
 ) : Module {
 
-    // TODO: addresses as objects
-
     init {
         tables.checkRoutes("Table", "tables", Table<*, *>::route)
     }
 
     override val name: String get() = "CRUD"
 
-    private val tableActions: List<TableActionRoute> = listOf(
-            TableActionRoute(HttpMethod.Get, "list", List()),
-            TableActionRoute(HttpMethod.Post, "reorder", Reorder()),
-            TableActionRoute(HttpMethod.Get, "create", Create()),
-            TableActionRoute(HttpMethod.Post, "create", Insert())
-    )
+    private val List = TableActionRoute(HttpMethod.Get, "list", List())
+    private val Reorder = TableActionRoute(HttpMethod.Post, "reorder", Reorder())
+    private val Create = TableActionRoute(HttpMethod.Get, "create", Create())
+    private val Insert = TableActionRoute(HttpMethod.Post, "create", Insert())
 
-    private val recordActions: List<RecordActionRoute>
+    private val Edit: RecordActionRoute
+    private val Review = RecordActionRoute(HttpMethod.Post, "review", Review())
+    private val ContinueEditing: RecordActionRoute
+    private val Delete = RecordActionRoute(HttpMethod.Post, "delete", Delete())
+    private val Update = RecordActionRoute(HttpMethod.Post, "update", Update())
+
     init {
         val edit = Edit() // for both GET and POST
-        recordActions = listOf(
-                RecordActionRoute(HttpMethod.Get, "edit", edit),
-                RecordActionRoute(HttpMethod.Post, "review", Review()),
-                RecordActionRoute(HttpMethod.Post, "edit", edit),
-                RecordActionRoute(HttpMethod.Post, "delete", Delete()),
-                RecordActionRoute(HttpMethod.Post, "update", Update())
-        )
+        Edit = RecordActionRoute(HttpMethod.Get, "edit", edit)
+        ContinueEditing = RecordActionRoute(HttpMethod.Post, "edit", edit)
     }
+
+    private val tableActions: List<TableActionRoute> = listOf(List, Reorder, Create, Insert)
+    private val recordActions: List<RecordActionRoute> = listOf(Edit, Review, ContinueEditing, Delete, Update)
 
     suspend override fun request(
             env: WebEnv,
@@ -93,7 +92,7 @@ class Crud(
                 "Crud index",
                 Content.LinkList(
                         "Tables",
-                        tables.map { Link("${env.routePrefix}/${it.route}/list/", it.displayName.fixIfBlank(), it.count.toString()) }
+                        tables.map { Link(List.addressOf(env, it), it.displayName.fixIfBlank(), it.count.toString()) }
                 ) // todo: webSocket reactive update
         )
     }
@@ -105,36 +104,37 @@ class Crud(
             env: WebEnv, call: ApplicationCall, table: Table<E, *>
     ) = call.respondHtml {
         val all = table.findAll()
-        val createNew = Link("${env.routePrefix}/${table.route}/create/", " + create new")
+        val createNew = Link(Create.addressOf(env, table), " + create new")
         env.template(
                 this,
                 "${table.displayName} — Crud",
                 when (table.sort) {
                     is Sort.NoneOrImplicit -> Content.LinkList(
                             table.displayName,
-                            all.map { createLinkToEditItem(env, table, it) } + createNew
+                            all.map { createLinkToEditRecord(env, table, it) } + createNew
                     )
                     is Sort.Explicit<*> -> Content.SortableLinkList(
                             table.displayName,
-                            all.map { createLinkToEditItem(env, table, it) to table.getId(it).toString() } + (createNew to null),
-                            "${env.routePrefix}/${table.route}/reorder/"
+                            all.map { createLinkToEditRecord(env, table, it) to table.getId(it).toString() } + (createNew to null),
+                            Reorder.addressOf(env, table)
                     )
                 }
         )
     }
-    private fun <T : Any> createLinkToEditItem(env: WebEnv, table: Table<T, *>, t: T) =
-            Link("${env.routePrefix}/${table.route}/edit/${table.getId(t)}/", table.getTitle(t).fixIfBlank())
+    private fun <T : Any> createLinkToEditRecord(env: WebEnv, table: Table<T, *>, record: T) =
+            Link(Edit.addressOf(env, table, record), table.getTitle(record).fixIfBlank())
 
     private fun Reorder(): TableAction = { env, call, table, _, post ->
         captureIdAndReorder(env, call, table, post)
     }
     private suspend fun <ID> captureIdAndReorder(env: WebEnv, call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
-        if (table.sort !is Sort.Explicit) {
-            return call.respondText("This table cannot be reordered.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
-        }
+        val sort = table.sort as? Sort.Explicit
+                ?: return call.respondText("This table cannot be reordered.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
 
-        val sort = table.sort as Sort.Explicit<ID>
-        val newOrder = post.getAll("ids[]")!!.map(table::stringToId)
+        val ids = post.getAll("ids[]")
+                ?: return call.respondText("'ids[]' request field is required.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
+
+        val newOrder = ids.map(table::stringToId)
         sort.updateOrder(newOrder)
 
         call.respondText("", status = HttpStatusCode.NoContent)
@@ -149,7 +149,8 @@ class Crud(
                         .map(Col<*>::createControl)
                         .filterNotNull().map { it to "" }
                         .toList(),
-                "${env.routePrefix}/${table.route}/create/")
+                Create.addressOf(env, table)
+        )
     }
 
     private fun Insert(): TableAction = { env, call, table, _, post ->
@@ -158,7 +159,7 @@ class Crud(
     private suspend fun <E : Any> captureEAndInsert(env: WebEnv, call: ApplicationCall, table: Table<E, *>, post: ValuesMap) {
         val new = table.createFromMap(post.toStringMap())
         table.save(new)
-        call.respondRedirect("${env.routePrefix}/${table.route}/list/")
+        call.respondRedirect(List.addressOf(env, table))
     }
 
 
@@ -172,12 +173,12 @@ class Crud(
         returnForm(
                 call, env.template,
                 "Editing $recordTitle in ${table.displayName} — Crud", recordTitle,
-                Content.Form.Mode.Edit("${env.routePrefix}/${table.route}/delete/${table.getId(record)}/"),
+                Content.Form.Mode.Edit(Delete.addressOf(env, table, record)),
                 table.cols.asSequence()
                         .filter { it.editControl != null }
                         .map { it.editControl!! to updated[it.name]!! }
                         .toList(),
-                "${env.routePrefix}/${table.route}/review/${table.getId(record)}/"
+                Review.addressOf(env, table, record)
         )
     }
 
@@ -199,8 +200,8 @@ class Crud(
                             map.toMap().map { (key, values) ->
                                 Triple(key, table.cols.single { it.name == key }.editControl!!.title, values.single())
                             },
-                            "${env.routePrefix}/${table.route}/edit/${table.getId(newRecord)}",
-                            "${env.routePrefix}/${table.route}/update/${table.getId(newRecord)}"
+                            ContinueEditing.addressOf(env, table, newRecord),
+                            Update.addressOf(env, table, newRecord)
                     )
             )
         }
@@ -212,7 +213,7 @@ class Crud(
     private suspend fun <E : Any, ID> captureEIdAndDelete(env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<E, ID>) {
         val (table, record) = tableAndRecord
         table.delete(table.getId(record))
-        call.respondRedirect("${env.routePrefix}/${table.route}/list/")
+        call.respondRedirect(List.addressOf(env, table))
     }
 
     private fun Update(): RecordAction = { env, call, tableAndRecord, _, post ->
@@ -226,7 +227,7 @@ class Crud(
         val updatedE = table.createFromMap(updatedMap)
         table.save(updatedE)
 
-        call.respondRedirect("${env.routePrefix}/${table.route}/list/")
+        call.respondRedirect(List.addressOf(env, table))
     }
 
     private inline suspend fun findTableAndRun(call: ApplicationCall, tableRoute: String, code: (Table<*, *>) -> Unit) {

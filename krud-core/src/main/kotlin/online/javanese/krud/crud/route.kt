@@ -12,7 +12,10 @@ class TableActionRoute(
         val method: HttpMethod,
         val keyword: String,
         val action: TableAction
-)
+) {
+    fun addressOf(env: WebEnv, table: Table<*, *>) =
+            "${env.routePrefix}/${table.route}/$keyword/"
+}
 
 /**
  * Action that can be performed on a table, e. g. list, create new record, etc.
@@ -29,7 +32,15 @@ class RecordActionRoute(
         val method: HttpMethod,
         val keyword: String,
         val action: RecordAction
-)
+) {
+    fun <E : Any> addressOf(env: WebEnv, table: Table<E, *>, record: E) =
+            "${env.routePrefix}/${table.route}/$keyword/${table.getId(record)}/"
+
+    fun <E : Any> addressOf(env: WebEnv, tableAndRecord: TableAndRecord<E, *>): String {
+        val (table, record) = tableAndRecord
+        return addressOf(env, table, record)
+    }
+}
 
 class TableAndRecord<T : Any, ID>(
         val table: Table<T, ID>,
