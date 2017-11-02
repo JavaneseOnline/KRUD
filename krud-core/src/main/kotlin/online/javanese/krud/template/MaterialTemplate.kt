@@ -131,6 +131,17 @@ ul.sortable > li.placeholder {
 }"""
                     }
                 }
+
+                if (content is Content.Form) {
+                    val styles = LinkedHashSet<String>()
+                    content.controlsAndValues.forEach { (control, _) ->
+                        control.requiredCss(staticPath).forEach {
+                            if (styles.add(it))
+                                styleLink(it)
+                        }
+                    }
+                }
+
             }
 
             body {
@@ -331,6 +342,17 @@ ul.sortable > li.placeholder {
 });"""
                     }
                 }
+
+                if (content is Content.Form) {
+                    val scripts = LinkedHashSet<String>()
+                    content.controlsAndValues.forEach { (control, _) ->
+                        control.requiredJs(staticPath).forEach {
+                            if (scripts.add(it))
+                                script(src = it)
+                        }
+                    }
+                }
+
             }
         }
     }

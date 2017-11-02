@@ -4,6 +4,7 @@ import online.javanese.krud.crud.Crud
 import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
+import online.javanese.krud.template.HtmlCodeMirror
 import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.template.TextArea
 import org.jetbrains.ktor.content.files
@@ -45,7 +46,7 @@ object KrudTestServer {
                                         IdCol(Item::id),
                                         TextCol(Item::name),
                                         TextCol(Item::text, controlFactory = TextArea),
-                                        TextCol(Item::code, controlFactory = TextArea)
+                                        TextCol(Item::code, controlFactory = HtmlCodeMirror)
                                 ),
                                 listOf(Item(UUID(0L, 0L), "Whatever", "", "")),
                                 { map -> Item(
