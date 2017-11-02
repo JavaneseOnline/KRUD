@@ -83,6 +83,9 @@ interface Table<E : Any, ID> {
     fun createFromMap(map: Map<String, String>): E
 }
 
+internal fun <E : Any> Table<E, *>.toMap(e: E) =
+        cols.associateBy({ it.name }, { it.getValue(e) })
+
 /**
  * Either this table can be sorted by user or not.
  */

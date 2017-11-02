@@ -10,8 +10,7 @@ import org.jetbrains.ktor.util.ValuesMap
  */
 class TableActionRoute(
         val method: HttpMethod,
-        val keyword: String,
-        val action: TableAction
+        val keyword: String
 ) {
     fun addressOf(env: WebEnv, table: Table<*, *>) =
             "${env.routePrefix}/${table.route}/$keyword/"
@@ -24,14 +23,22 @@ typealias TableAction = suspend (
         env: WebEnv, call: ApplicationCall, table: Table<*, *>, query: ValuesMap, post: ValuesMap
 ) -> Unit
 
+/**
+ * Encapsulates route and table action
+ */
+class RoutedTableAction(
+        val route: TableActionRoute,
+        val action: TableAction
+)
+
+
 
 /**
  * A route to action which can be performed on a record.
  */
 class RecordActionRoute(
         val method: HttpMethod,
-        val keyword: String,
-        val action: RecordAction
+        val keyword: String
 ) {
     fun <E : Any> addressOf(env: WebEnv, table: Table<E, *>, record: E) =
             "${env.routePrefix}/${table.route}/$keyword/${table.getId(record)}/"
@@ -53,3 +60,11 @@ class TableAndRecord<T : Any, ID>(
 typealias RecordAction = suspend (
         env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<*, *>, query: ValuesMap, post: ValuesMap
 ) -> Unit
+
+/**
+ * Encapsulates route and record action
+ */
+class RoutedRecordAction(
+        val route: RecordActionRoute,
+        val action: RecordAction
+)
