@@ -397,8 +397,14 @@ ul.sortable > li.placeholder {
         }
     }
 
-    private fun renderTextArea(control: Control, value: String) {
-        TODO()
+    private fun FlowContent.renderTextArea(control: Control, value: String) {
+        div("mdl-textfield mdl-js-textfield mdl-textfield--floating-label") {
+            control.render(this, value, "mdl-textfield__input")
+            label("mdl-textfield__label") {
+                for_ = control.id
+                +control.title
+            }
+        }
     }
 
 }

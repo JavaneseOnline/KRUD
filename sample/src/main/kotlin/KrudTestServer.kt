@@ -5,6 +5,7 @@ import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
 import online.javanese.krud.template.MaterialTemplate
+import online.javanese.krud.template.TextArea
 import org.jetbrains.ktor.content.files
 import org.jetbrains.ktor.content.static
 import org.jetbrains.ktor.content.staticRootFolder
@@ -42,12 +43,16 @@ object KrudTestServer {
                                 "item", "Item", Item::id, Item::name, UUID::fromString,
                                 listOf(
                                         IdCol(Item::id),
-                                        TextCol(Item::name)
+                                        TextCol(Item::name),
+                                        TextCol(Item::text, controlFactory = TextArea),
+                                        TextCol(Item::code, controlFactory = TextArea)
                                 ),
-                                listOf(Item(UUID(0L, 0L), "Whatever")),
+                                listOf(Item(UUID(0L, 0L), "Whatever", "", "")),
                                 { map -> Item(
                                         id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
-                                        name = map["name"]!! // ^ update             ^ create
+                                        name = map["name"]!!, // ^ update             ^ create
+                                        text = map["text"]!!,
+                                        code = map["code"]!!
                                 ) },
                                 sortable = true
                         )

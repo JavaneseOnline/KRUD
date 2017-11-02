@@ -80,18 +80,45 @@ class TextInput(
         override val title: String,
         private val editable: Boolean = true
 ) : Control {
+    override val type: Control.Type get() = Control.Type.Input
+
     override fun render(html: FlowContent, value: String, classes: String?) {
-        html.apply {
-            input(type = InputType.text, classes = classes) {
-                this@input.name = this@TextInput.name
-                this@input.value = value
-                this@input.id = this@TextInput.id
-                this@input.readonly = !this@TextInput.editable
-            }
+        html.input(type = InputType.text, classes = classes) {
+            this@input.name = this@TextInput.name
+            this@input.id = this@TextInput.id
+            this@input.readonly = !this@TextInput.editable
+            this@input.value = value
         }
     }
 
-    override val type: Control.Type get() = Control.Type.Input
+    companion object : (String, String) -> Control {
+        override fun invoke(name: String, title: String): Control =
+                TextInput(name, name, title)
+    }
+}
+
+class TextArea(
+        private val name: String,
+        override val id: String,
+        override val title: String,
+        private val editable: Boolean = true
+) : Control {
+    override val type: Control.Type get() = Control.Type.TextArea
+
+    override fun render(html: FlowContent, value: String, classes: String?) {
+        html.textArea(classes = classes) {
+            this@textArea.name = this@TextArea.name
+            this@textArea.id = this@TextArea.id
+            this@textArea.readonly = !this@TextArea.editable
+
+            +value
+        }
+    }
+
+    companion object : (String, String) -> Control {
+        override fun invoke(name: String, title: String): Control =
+                TextArea(name, name, title)
+    }
 }
 
 object EmptyControl : Control {

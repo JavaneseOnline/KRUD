@@ -205,11 +205,12 @@ class IdCol<OWNR : Any, ID>(
 class TextCol<OWNR : Any, T>(
         private val property: KProperty1<OWNR, T>,
         title: String = property.name.capitalize(),
-        private val toString: (T) -> String = Any?::toString
+        private val toString: (T) -> String = Any?::toString,
+        controlFactory: (name: String, title: String) -> Control = TextInput
 ) : Col<OWNR> {
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
-    private val control: Control = TextInput(property.name, property.name, title)
+    private val control: Control = controlFactory(name, title)
     override val createControl: Control get() = control
     override val editControl: Control get() = control
 }
