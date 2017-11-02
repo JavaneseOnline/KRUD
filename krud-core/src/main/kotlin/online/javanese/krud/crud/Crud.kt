@@ -125,9 +125,9 @@ class Crud(
             Link(Edit.addressOf(env, table, record), table.getTitle(record).fixIfBlank())
 
     private fun Reorder(): TableAction = { env, call, table, _, post ->
-        captureIdAndReorder(env, call, table, post)
+        captureIdAndReorder(call, table, post)
     }
-    private suspend fun <ID> captureIdAndReorder(env: WebEnv, call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
+    private suspend fun <ID> captureIdAndReorder(call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
         val sort = table.sort as? Sort.Explicit
                 ?: return call.respondText("This table cannot be reordered.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
 
@@ -174,10 +174,7 @@ class Crud(
                 call, env.template,
                 "Editing $recordTitle in ${table.displayName} — Crud", recordTitle,
                 Content.Form.Mode.Edit(Delete.addressOf(env, table, record)),
-                table.cols.asSequence()
-                        .filter { it.editControl != null }
-                        .map { it.editControl!! to updated[it.name]!! }
-                        .toList(),
+                table.cols.mapNotNull { col -> updated[col.name]?.let { value -> col.editControl to value } },
                 Review.addressOf(env, table, record)
         )
     }
@@ -197,8 +194,9 @@ class Crud(
                     "Reviewing ${table.getTitle(newRecord)} in ${table.displayName} — Crud",
                     Content.Review(
                             table.getTitle(newRecord),
-                            map.toMap().map { (key, values) ->
-                                Triple(key, table.cols.single { it.name == key }.editControl!!.title, values.single())
+                            map.toMap().mapNotNull { (key, values) ->
+                                if (values.isEmpty()) null // skip values which were not passed
+                                else Triple(key, table.cols.single { it.name == key }.editControl.title, values.single())
                             },
                             ContinueEditing.addressOf(env, table, newRecord),
                             Update.addressOf(env, table, newRecord)

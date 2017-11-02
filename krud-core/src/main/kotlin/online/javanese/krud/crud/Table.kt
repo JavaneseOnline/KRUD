@@ -1,6 +1,7 @@
 package online.javanese.krud.crud
 
 import online.javanese.krud.template.Control
+import online.javanese.krud.template.EmptyControl
 import online.javanese.krud.template.TextInput
 import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicReference
@@ -173,12 +174,12 @@ interface Col<OWNR : Any> {
     /**
      * UI control which will be user in Create form
      */
-    val createControl: Control?
+    val createControl: Control
 
     /**
      * UI control which will be user in Edit form
      */
-    val editControl: Control?
+    val editControl: Control
 }
 
 /**
@@ -191,8 +192,8 @@ class IdCol<OWNR : Any, ID>(
 ): Col<OWNR> {
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
-    override val createControl: Control? get() = null
-    override val editControl: Control? = TextInput(property.name, property.name, title, editable = false)
+    override val createControl: Control get() = EmptyControl
+    override val editControl: Control = TextInput(property.name, property.name, title, editable = false)
 }
 
 /**
@@ -206,6 +207,6 @@ class TextCol<OWNR : Any, T>(
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
     private val control: Control = TextInput(property.name, property.name, title)
-    override val createControl: Control? get() = control
-    override val editControl: Control? get() = control
+    override val createControl: Control get() = control
+    override val editControl: Control get() = control
 }

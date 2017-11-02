@@ -93,3 +93,13 @@ class TextInput(
 
     override val type: Control.Type get() = Control.Type.Input
 }
+
+object EmptyControl : Control {
+    override val id: String get() = "unused"
+    override val type: Control.Type get() = Control.Type.Custom // don't decorate me
+    override val title: String get() = "Won't be rendered"
+
+    override fun render(html: FlowContent, value: String, classes: String?) {
+        // no-op
+    }
+}
