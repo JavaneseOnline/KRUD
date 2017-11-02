@@ -129,6 +129,10 @@ class Crud(
         captureIdAndReorder(env, call, table, post)
     }
     private suspend fun <ID> captureIdAndReorder(env: WebEnv, call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
+        if (table.sort !is Sort.Explicit) {
+            return call.respondText("This table cannot be reordered.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
+        }
+
         val sort = table.sort as Sort.Explicit<ID>
         val newOrder = post.getAll("ids[]")!!.map(table::stringToId)
         sort.updateOrder(newOrder)
