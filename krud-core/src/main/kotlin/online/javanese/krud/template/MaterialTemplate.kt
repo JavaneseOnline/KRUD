@@ -331,64 +331,13 @@ ul.sortable > li.placeholder {
 });"""
                     }
                 }
-/*
-                <script type="text/javascript" th:inline="javascript">
-                function insertAtCursor(field, value) {
-                //IE support
-                if (document.selection) {
-                    field.focus();
-                    sel = document.selection.createRange();
-                    sel.text = value;
-                }
-                //MOZILLA and others
-                else if (field.selectionStart || field.selectionStart == '0') {
-                    var startPos = field.selectionStart;
-                    var endPos = field.selectionEnd;
-                    field.value = field.value.substring(0, startPos)
-                    + value
-                    + field.value.substring(endPos, field.value.length);
-                } else {
-                    field.value += value;
-                }
-            }
-
-                $('div.wysiwyg').each(function() {
-                var $this = $(this);
-                /*var $textarea = $this.find('textarea').hide();
-                var $preview = $('<div/>').insertAfter($this).html($textarea.val());
-                var $editor = $('<div class="editor" />')
-                        .text($textarea.val())
-                        .insertAfter($textarea);
-                ace.config.set('workerPath', '/js/');
-                var editor = ace.edit($editor[0]);
-                editor.setTheme('ace/theme/kuroir');
-                editor.getSession().setMode('ace/mode/html');
-                editor.getSession().on('change', function(e) {
-                    var val = editor.getValue();
-                    $textarea.val(val);
-                    $preview.html(val);
-                });*/
-                var textarea = $this.find('textarea').hide()[0];
-                var editor = CodeMirror(function(elt) {
-                    textarea.parentNode.appendChild(elt);
-                }, {value: textarea.value,
-                    lineNumbers: true,
-                    indentUnit: 4});
-                editor.on('change', function(inst) {
-                    textarea.value = inst.getValue();
-                });
-            });
-                </script>
-
-                <th:block th:utext="${presenter.getAdditionalMarkup(_csrf)}" />
-                */
             }
         }
     }
 
     private fun FlowContent.main(classes: String?, visitor: MAIN.() -> Unit) = MAIN(consumer, classes).visit(visitor)
 
-    class MAIN(consumer: TagConsumer<*>, classes: String?) :
+    private class MAIN(consumer: TagConsumer<*>, classes: String?) :
             HTMLTag("main", consumer, mapOf("class" to (classes ?: "")), inlineTag = false, emptyTag = false),
             FlowContent
 
