@@ -2,6 +2,7 @@ package online.javanese.krud
 
 import online.javanese.krud.template.AdminTemplate
 import online.javanese.krud.template.Link
+import online.javanese.krud.template.ModuleTemplate
 import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.http.HttpMethod
@@ -14,7 +15,7 @@ import org.jetbrains.ktor.util.ValuesMap
  */
 class AdminPanel(
         private val routePrefix: String,
-        private val template: AdminTemplate,
+        template: AdminTemplate,
         private vararg val modules: RoutedModule
 ) {
 
@@ -22,17 +23,13 @@ class AdminPanel(
         modules.checkRoutes("Module", "modules", RoutedModule::route)
     }
 
-    private val sidebarLinks = modules.map { Link("$routePrefix/${it.route}/", it.module.name) }
+    private val moduleTemplate: ModuleTemplate
+    init {
+        val sidebarLinks = modules.map { Link("$routePrefix/${it.route}/", it.module.name) }
+        moduleTemplate = { root, titleText, content -> template(root, titleText, sidebarLinks, content) }
+    }
 
-    private val webEnvs = modules.associateBy(
-            RoutedModule::module,
-            {
-                WebEnv(
-                        "$routePrefix/${it.route}",
-                        { root, titleText, content -> template(root, titleText, sidebarLinks, content) }
-                )
-            }
-    )
+    private val webEnvs = HashMap<Module, WebEnv>(modules.size)
 
     /**
      * Proxies call to according [Module], if any.
@@ -50,7 +47,9 @@ class AdminPanel(
 
         val module = routedModule.module
 
-        module.request(webEnvs[module]!!, call, HttpRequest(method, pathSegments, query = query, post = post))
+        module.request(
+                webEnvs.getOrPut(module) { WebEnv("$routePrefix/${routedModule.route}", moduleTemplate) },
+                call, HttpRequest(method, pathSegments, query = query, post = post))
     }
 
 }
