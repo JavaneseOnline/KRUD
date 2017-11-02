@@ -7,13 +7,13 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 import io.ktor.util.ValuesMap
-import online.javanese.krud.HttpRequest
-import online.javanese.krud.Module
-import online.javanese.krud.WebEnv
-import online.javanese.krud.checkRoutes
+import online.javanese.krud.*
 import online.javanese.krud.template.Content
 import online.javanese.krud.template.Link
 
+/**
+ * Handles basic CRUD operations in context of [AdminPanel].
+ */
 class Crud(
         private vararg val tables: Table<*, *>
 ) : Module {

@@ -90,8 +90,20 @@ internal fun <E : Any> Table<E, *>.toMap(e: E) =
  * Either this table can be sorted by user or not.
  */
 sealed class Sort<in ID> {
+
+    /**
+     * There's no explicit record sorting.
+     */
     object NoneOrImplicit : Sort<Any?>()
+
+    /**
+     * Records are sorted explicitly and thus may be reordered by user.
+     */
     abstract class Explicit<in ID> : Sort<ID>() {
+
+        /**
+         * Should reorder table rows in the specified order.
+         */
         abstract fun updateOrder(newOrder: List<ID>)
     }
 }
@@ -196,7 +208,7 @@ class IdCol<OWNR : Any, ID>(
     override fun getValue(owner: OWNR): String = toString(property.get(owner))
     override val name: String get() = property.name
     override val createControl: Control get() = EmptyControl
-    override val editControl: Control = TextInput(property.name, property.name, title, editable = false)
+    override val editControl: Control = TextInput(property.name, title, editable = false)
 }
 
 /**
