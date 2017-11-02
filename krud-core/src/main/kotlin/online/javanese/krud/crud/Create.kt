@@ -1,7 +1,7 @@
 package online.javanese.krud.crud
 
+import io.ktor.html.respondHtml
 import online.javanese.krud.template.Content
-import org.jetbrains.ktor.html.respondHtml
 
 internal fun Create(createRoute: TableActionRoute): TableAction = { env, call, table, _, post ->
 

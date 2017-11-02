@@ -1,10 +1,10 @@
 package online.javanese.krud.crud
 
+import io.ktor.application.ApplicationCall
+import io.ktor.html.respondHtml
 import online.javanese.krud.WebEnv
 import online.javanese.krud.template.Content
 import online.javanese.krud.template.Link
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.html.respondHtml
 
 internal fun List(
         createRoute: TableActionRoute, reorderRoute: TableActionRoute, editRoute: RecordActionRoute,

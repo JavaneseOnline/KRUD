@@ -1,10 +1,10 @@
 package online.javanese.krud.crud
 
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.util.ValuesMap
+import io.ktor.application.ApplicationCall
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
+import io.ktor.util.ValuesMap
 
 internal fun Reorder(): TableAction = { env, call, table, _, post ->
     captureIdAndReorder(call, table, post)

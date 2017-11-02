@@ -1,6 +1,6 @@
 package online.javanese.krud
 
-import org.jetbrains.ktor.application.ApplicationCall
+import io.ktor.application.ApplicationCall
 
 /**
  * Describes a part of admin panel.

@@ -1,7 +1,7 @@
 package online.javanese.krud
 
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.util.ValuesMap
+import io.ktor.http.HttpMethod
+import io.ktor.util.ValuesMap
 
 /**
  * Describes HTTP request.

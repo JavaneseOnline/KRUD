@@ -1,9 +1,9 @@
 package online.javanese.krud.crud
 
+import io.ktor.application.ApplicationCall
+import io.ktor.http.HttpMethod
+import io.ktor.util.ValuesMap
 import online.javanese.krud.WebEnv
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.util.ValuesMap
 
 /**
  * A route to action which can be performed on a [Table].

@@ -1,14 +1,14 @@
 package online.javanese.krud
 
+import io.ktor.application.ApplicationCall
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
+import io.ktor.util.ValuesMap
 import online.javanese.krud.template.AdminTemplate
 import online.javanese.krud.template.Link
 import online.javanese.krud.template.ModuleTemplate
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.util.ValuesMap
 
 /**
  * This is a base, a host, a router for [Module]s.

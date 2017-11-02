@@ -1,8 +1,8 @@
 package online.javanese.krud.crud
 
+import io.ktor.application.ApplicationCall
+import io.ktor.response.respondRedirect
 import online.javanese.krud.WebEnv
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.response.respondRedirect
 
 internal fun Delete(listRoute: TableActionRoute): RecordAction = { env, call, tableAndRecord, _, _ ->
     captureEIdAndDelete(env, call, tableAndRecord, listRoute)
