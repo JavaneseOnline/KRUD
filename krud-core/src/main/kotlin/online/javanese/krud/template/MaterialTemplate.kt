@@ -33,7 +33,6 @@ class MaterialTemplate(
 
                 styleLink("https://fonts.googleapis.com/css?family=PT+Sans:400,700&subset=latin,cyrillic")
                 styleLink("//fonts.googleapis.com/icon?family=Material+Icons")
-                // <link rel="stylesheet" th:href="@{/sandbox/codemirror_ambiance.min.css}" />
                 styleLink("https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.css")
                 styleLink("$staticPath/admin-material.min.css")
                 styleLink("$staticPath/dashboard.css")
