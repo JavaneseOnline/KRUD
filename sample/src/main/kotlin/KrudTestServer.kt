@@ -1,4 +1,7 @@
 import io.ktor.application.call
+import io.ktor.auth.UserIdPrincipal
+import io.ktor.auth.authentication
+import io.ktor.auth.basicAuthentication
 import io.ktor.content.files
 import io.ktor.content.static
 import io.ktor.content.staticRootFolder
@@ -71,7 +74,13 @@ object KrudTestServer {
 
             routing {
                 route("/admin/") {
-//                    intercept(ApplicationCallPipeline.Infrastructure) { … } TODO
+
+                    authentication {
+                        basicAuthentication("Admin") { cred ->
+                            if (cred.name == "admin" && cred.password == "admin") UserIdPrincipal("admin")
+                            else null
+                        }
+                    }
 
                     get("") {
                         call.respondRedirect("/admin/crud/")
@@ -99,12 +108,12 @@ object KrudTestServer {
                         )
                     }
 
-                    static("path/to/static/resources") {
-                        val localStaticDirFile = File(staticResDir)
-                        staticRootFolder = localStaticDirFile.parentFile
-                        files(localStaticDirFile.name)
-                    }
+                }
 
+                static("admin/path/to/static/resources") {
+                    val localStaticDirFile = File(staticResDir)
+                    staticRootFolder = localStaticDirFile.parentFile
+                    files(localStaticDirFile.name)
                 }
             }
 
