@@ -319,7 +319,6 @@ ul.sortable > li.placeholder {
 
                 }
 
-//                script(src = "$staticPath/codemirror_html.min.js") // todo: move to extension
                 script(src = "http://zeptojs.com/zepto.min.js")
                 script(src = "//cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.js")
                 script(src = "$staticPath/zepto-dnd.min.js")
