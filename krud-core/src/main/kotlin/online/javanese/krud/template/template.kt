@@ -1,5 +1,6 @@
 package online.javanese.krud.template
 
+import kotlinx.html.FlowContent
 import kotlinx.html.HTML
 
 typealias AdminTemplate = (
@@ -68,6 +69,14 @@ sealed class Content {
             val namesTitlesValues: List<Triple<String, String, String>>,
             val editAction: String,
             val updateAction: String
+    ) : Content()
+
+    /**
+     * Show block with title and custom content.
+     */
+    class Card(
+            val title: String,
+            val renderContent: FlowContent.() -> Unit
     ) : Content()
 
 }

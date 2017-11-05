@@ -131,6 +131,7 @@ class MaterialTemplate(
                                     is Content.SortableLinkList -> renderSortableLinkList(content)
                                     is Content.Form -> renderForm(content)
                                     is Content.Review -> renderReview(content)
+                                    is Content.Card -> renderTitledBlock(content.title, content.renderContent)
                                 }.also { }
                             }
                         }
@@ -280,6 +281,16 @@ class MaterialTemplate(
         }
     }
 
+    private fun FlowContent.renderTitledBlock(title: String, renderContent: FlowContent.() -> Unit) {
+        div("mdl-card mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--4-col") {
+            div("mdl-card__supporting-text") {
+                h3 { +title }
+
+                renderContent()
+            }
+        }
+    }
+
 
 
 
@@ -307,9 +318,7 @@ class MaterialTemplate(
             title: String, items: List<T>, ulClasses: String,
             crossinline configureList: UL.() -> Unit, crossinline renderItem: LI.(T) -> Unit
     ) {
-        div("mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--4-col") {
-            h4("mdl-card__title") { +title }
-
+        renderTitledBlock(title) {
             ul("mdl-list m-v-0 p-v-0${if (ulClasses.isNotBlank()) ' ' + ulClasses else ""}") {
                 configureList()
                 items.forEach { item ->
