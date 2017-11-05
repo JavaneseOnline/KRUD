@@ -83,7 +83,7 @@ object KrudTestServer {
                     }
 
                     get("") {
-                        call.respondRedirect("/admin/crud/")
+                        admin.dashboard(call)
                     }
 
                     get("{module}/{tail...}") {

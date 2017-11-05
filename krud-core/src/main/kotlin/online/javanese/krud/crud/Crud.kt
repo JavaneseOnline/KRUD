@@ -107,15 +107,21 @@ class Crud(
         action(env, call, TableAndRecord(table, record), query, post)
     }
 
-    private suspend fun index(env: WebEnv, call: ApplicationCall) = call.respondHtml {
-        env.template(
-                this,
-                "Crud index",
-                Content.LinkList(
-                        "Tables",
-                        tables.map { Link(ListRoute.addressOf(env, it), fixIfBlank(it.displayName), it.count.toString()) }
-                ) // todo: webSocket reactive update
-        )
+    override suspend fun summary(env: WebEnv): Content = Content.LinkList(
+            "Tables",
+            tables.map { Link(ListRoute.addressOf(env, it), fixIfBlank(it.displayName), it.count.toString()) }
+    )
+
+    private suspend fun index(env: WebEnv, call: ApplicationCall) {
+        val summary = summary(env)
+
+        call.respondHtml {
+            env.template(
+                    this,
+                    "Crud index",
+                    listOf(summary)
+            )
+        }
     }
 
     private inline suspend fun findTableAndRun(call: ApplicationCall, tableRoute: String, code: (Table<*, *>) -> Unit) {

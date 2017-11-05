@@ -1,6 +1,7 @@
 package online.javanese.krud
 
 import io.ktor.application.ApplicationCall
+import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -29,7 +30,20 @@ class AdminPanel(
         moduleTemplate = { root, titleText, content -> template(root, titleText, sidebarLinks, content) }
     }
 
-    private val webEnvs = HashMap<Module, WebEnv>(modules.size)
+    private val webEnvs = HashMap<RoutedModule, WebEnv>(modules.size)
+    private val RoutedModule.webEnv
+        get() = webEnvs.getOrPut(this) { WebEnv("$routePrefix/$route", moduleTemplate) }
+
+    /**
+     * Renders a dashboard.
+     */
+    suspend fun dashboard(call: ApplicationCall) {
+        val summaries = modules.map { it.module.summary(it.webEnv) }
+
+        call.respondHtml {
+            moduleTemplate(this, "Dashboard — Admin", summaries)
+        }
+    }
 
     /**
      * Proxies call to according [Module], if any.
@@ -45,10 +59,8 @@ class AdminPanel(
         val routedModule = modules.firstOrNull { it.route == modulePath }
                 ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
 
-        val module = routedModule.module
-
-        module.request(
-                webEnvs.getOrPut(module) { WebEnv("$routePrefix/${routedModule.route}", moduleTemplate) },
+        routedModule.module.request(
+                routedModule.webEnv,
                 call, HttpRequest(method, pathSegments, query = query, post = post))
     }
 
