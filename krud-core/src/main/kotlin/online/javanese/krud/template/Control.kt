@@ -1,6 +1,8 @@
 package online.javanese.krud.template
 
 import kotlinx.html.*
+import online.javanese.krud.FrontendDependencies
+import online.javanese.krud.NoFrontendDependencies
 
 /**
  * Represents a UI control.
@@ -23,16 +25,10 @@ interface Control {
     val title: String
 
 
-
     /**
-     * Set of CSS-files this control depends on.
+     * CSS and JS files required by this control.
      */
-    fun requiredCss(staticPath: String): Set<String>
-
-    /**
-     * Set of scripts this control depends on.
-     */
-    fun requiredJs(staticPath: String): Set<String>
+    val frontendDependencies: FrontendDependencies
 
 
     /**
@@ -54,8 +50,7 @@ class TextInput(
         private val editable: Boolean = true
 ) : Control {
     override val type: Control.Type get() = Control.Type.Input
-    override fun requiredCss(staticPath: String): Set<String> = emptySet()
-    override fun requiredJs(staticPath: String): Set<String> = emptySet()
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
     override fun render(html: FlowContent, value: String, classes: String?) {
         html.input(type = InputType.text, classes = classes) {
@@ -81,8 +76,7 @@ class TextArea(
         private val editable: Boolean = true
 ) : Control {
     override val type: Control.Type get() = Control.Type.TextArea
-    override fun requiredCss(staticPath: String): Set<String> = emptySet()
-    override fun requiredJs(staticPath: String): Set<String> = emptySet()
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
     override fun render(html: FlowContent, value: String, classes: String?) {
         html.textArea(classes = classes) {
@@ -110,14 +104,16 @@ class HtmlCodeMirror constructor(
 ) : Control {
     override val type: Control.Type get() = Control.Type.Custom
 
-    override fun requiredCss(staticPath: String): Set<String> = setOf(
-            "$staticPath/codemirror_ambiance.min.css"
-    )
+    override val frontendDependencies: FrontendDependencies = object : FrontendDependencies {
+        override fun requiredCss(staticPath: String): Set<String> = setOf(
+                "$staticPath/codemirror_ambiance.min.css"
+        )
 
-    override fun requiredJs(staticPath: String): Set<String> = setOf(
-            "$staticPath/codemirror_html.min.js",
-            "$staticPath/codemirror_html_init.js"
-    )
+        override fun requiredJs(staticPath: String): Set<String> = setOf(
+                "$staticPath/codemirror_html.min.js",
+                "$staticPath/codemirror_html_init.js"
+        )
+    }
 
     override fun render(html: FlowContent, value: String, classes: String?) {
 
@@ -151,8 +147,7 @@ object EmptyControl : Control {
     override val id: String get() = "unused"
     override val type: Control.Type get() = Control.Type.Custom // don't decorate me
     override val title: String get() = "Won't be rendered"
-    override fun requiredCss(staticPath: String): Set<String> = emptySet()
-    override fun requiredJs(staticPath: String): Set<String> = emptySet()
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
     override fun render(html: FlowContent, value: String, classes: String?) {
         // no-op

@@ -39,13 +39,9 @@ class MaterialTemplate(
 
                 val styles = LinkedHashSet<String>()
                 contents.forEach { content ->
-                    if (content is Content.Form) {
-                        content.controlsAndValues.forEach { (control, _) ->
-                            control.requiredCss(staticPath).forEach {
-                                if (styles.add(it))
-                                    styleLink(it)
-                            }
-                        }
+                    content.dependencies.requiredCss(staticPath).forEach {
+                        if (styles.add(it))
+                            styleLink(it)
                     }
                 }
 
@@ -165,13 +161,9 @@ class MaterialTemplate(
 
                 val scripts = LinkedHashSet<String>()
                 contents.forEach { content ->
-                    if (content is Content.Form) {
-                        content.controlsAndValues.forEach { (control, _) ->
-                            control.requiredJs(staticPath).forEach {
-                                if (scripts.add(it))
-                                    script(src = it)
-                            }
-                        }
+                    content.dependencies.requiredJs(staticPath).forEach {
+                        if (scripts.add(it))
+                            script(src = it)
                     }
                 }
 

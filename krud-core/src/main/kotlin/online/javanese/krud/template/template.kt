@@ -2,6 +2,9 @@ package online.javanese.krud.template
 
 import kotlinx.html.FlowContent
 import kotlinx.html.HTML
+import online.javanese.krud.CompositeFrontendDependencies
+import online.javanese.krud.FrontendDependencies
+import online.javanese.krud.NoFrontendDependencies
 
 typealias AdminTemplate = (
         root: HTML,
@@ -27,13 +30,17 @@ class Link(
  */
 sealed class Content {
 
+    abstract val dependencies: FrontendDependencies
+
     /**
      * Just a list of links.
      */
     class LinkList(
             val title: String,
             val links: List<Link>
-    ) : Content()
+    ) : Content() {
+        override val dependencies: FrontendDependencies get() = NoFrontendDependencies
+    }
 
     /**
      * A list of links which can be sorted.
@@ -43,7 +50,9 @@ sealed class Content {
             val title: String,
             val linksAndIds: List<Pair<Link, String?>>,
             val updateAction: String
-    ) : Content()
+    ) : Content() {
+        override val dependencies: FrontendDependencies get() = NoFrontendDependencies
+    }
 
     /**
      * Represents HTML form.
@@ -55,6 +64,12 @@ sealed class Content {
             val controlsAndValues: List<Pair<Control, String>>,
             val submitAction: String
     ) : Content() {
+
+        override val dependencies: FrontendDependencies =
+                CompositeFrontendDependencies(
+                        controlsAndValues.map { (ctl, _) -> ctl.frontendDependencies }
+                )
+
         sealed class Mode {
             object Create : Mode()
             class Edit(val removeAction: String) : Mode()
@@ -69,13 +84,16 @@ sealed class Content {
             val namesTitlesValues: List<Triple<String, String, String>>,
             val editAction: String,
             val updateAction: String
-    ) : Content()
+    ) : Content() {
+        override val dependencies: FrontendDependencies get() = NoFrontendDependencies
+    }
 
     /**
      * Show block with title and custom content.
      */
     class Card(
             val title: String,
+            override val dependencies: FrontendDependencies = NoFrontendDependencies,
             val renderContent: FlowContent.() -> Unit
     ) : Content()
 
