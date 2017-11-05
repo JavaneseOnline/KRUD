@@ -25,49 +25,49 @@ class Crud(
 
     override val name: String get() = "CRUD"
 
-    private val ListRoute = TableActionRoute(HttpMethod.Get, "list")
-    private val ReorderRoute = TableActionRoute(HttpMethod.Post, "reorder")
-    private val CreateRoute = TableActionRoute(HttpMethod.Get, "create")
-    private val InsertRoute = TableActionRoute(HttpMethod.Post, "create")
+    private val ListRoute = TablePageRoute("list")
+    private val ReorderRoute = TableActionRoute("reorder")
+    private val CreateRoute = TablePageRoute("create")
+    private val InsertRoute = TableActionRoute("create")
 
-    private val EditRoute = RecordActionRoute(HttpMethod.Get, "edit")
-    private val ReviewRoute = RecordActionRoute(HttpMethod.Post, "review")
-    private val ContinueEditingRoute = RecordActionRoute(HttpMethod.Post, "edit")
-    private val DeleteRoute = RecordActionRoute(HttpMethod.Post, "delete")
-    private val UpdateRoute = RecordActionRoute(HttpMethod.Post, "update")
+    private val EditRoute = RecordPageRoute("edit")
+    private val ReviewRoute = RecordActionRoute("review")
+    private val ContinueEditingRoute = RecordActionRoute("edit")
+    private val DeleteRoute = RecordActionRoute("delete")
+    private val UpdateRoute = RecordActionRoute("update")
 
 
-    private val List: RoutedTableAction
-    private val Reorder: RoutedTableAction
-    private val Create: RoutedTableAction
-    private val Insert: RoutedTableAction
+    private val List: RoutedTableEndpoint
+    private val Reorder: RoutedTableEndpoint
+    private val Create: RoutedTableEndpoint
+    private val Insert: RoutedTableEndpoint
 
-    private val Edit: RoutedRecordAction
-    private val Review: RoutedRecordAction
-    private val ContinueEditing: RoutedRecordAction
-    private val Delete: RoutedRecordAction
-    private val Update: RoutedRecordAction
+    private val Edit: RoutedRecordEndpoint
+    private val Review: RoutedRecordEndpoint
+    private val ContinueEditing: RoutedRecordEndpoint
+    private val Delete: RoutedRecordEndpoint
+    private val Update: RoutedRecordEndpoint
 
     init {
-        List = RoutedTableAction(ListRoute, List(
+        List = RoutedTableEndpoint(ListRoute, List(
                 createRoute = CreateRoute, reorderRoute = ReorderRoute, editRoute = EditRoute, transformTitle = Companion::fixIfBlank
         ))
-        Reorder = RoutedTableAction(ReorderRoute, Reorder())
-        Create = RoutedTableAction(CreateRoute, Create(createRoute = CreateRoute))
-        Insert = RoutedTableAction(InsertRoute, Insert(listRoute = ListRoute))
+        Reorder = RoutedTableEndpoint(ReorderRoute, Reorder())
+        Create = RoutedTableEndpoint(CreateRoute, Create(createRoute = CreateRoute))
+        Insert = RoutedTableEndpoint(InsertRoute, Insert(listRoute = ListRoute))
 
         val edit = Edit(deleteRoute = DeleteRoute, reviewRoute = ReviewRoute)
-        Edit = RoutedRecordAction(EditRoute, edit)
-        Review = RoutedRecordAction(ReviewRoute, Review(
+        Edit = RoutedRecordEndpoint(EditRoute, edit)
+        Review = RoutedRecordEndpoint(ReviewRoute, Review(
                 continueEditingRoute = ContinueEditingRoute, updateRoute = UpdateRoute
         ))
-        ContinueEditing = RoutedRecordAction(ContinueEditingRoute, edit)
-        Delete = RoutedRecordAction(DeleteRoute, Delete(listRoute = ListRoute))
-        Update = RoutedRecordAction(UpdateRoute, Update(listRoute = ListRoute))
+        ContinueEditing = RoutedRecordEndpoint(ContinueEditingRoute, edit)
+        Delete = RoutedRecordEndpoint(DeleteRoute, Delete(listRoute = ListRoute))
+        Update = RoutedRecordEndpoint(UpdateRoute, Update(listRoute = ListRoute))
     }
 
-    private val tableActions: List<RoutedTableAction> = listOf(List, Reorder, Create, Insert)
-    private val recordActions: List<RoutedRecordAction> = listOf(Edit, Review, ContinueEditing, Delete, Update)
+    private val tableActions: List<RoutedTableEndpoint> = listOf(List, Reorder, Create, Insert)
+    private val recordActions: List<RoutedRecordEndpoint> = listOf(Edit, Review, ContinueEditing, Delete, Update)
 
     suspend override fun request(
             env: WebEnv,
@@ -101,7 +101,7 @@ class Crud(
     }
 
     private suspend fun <T : Any> captureTFindRecordAndPerform(
-            env: WebEnv, call: ApplicationCall, table: Table<T, *>, recordIdStr: String, action: RecordAction,
+            env: WebEnv, call: ApplicationCall, table: Table<T, *>, recordIdStr: String, action: RecordEndpoint,
             query: ValuesMap, post: ValuesMap
     ) = findOneAndRun(call, table, recordIdStr) { record ->
         action(env, call, TableAndRecord(table, record), query, post)

@@ -4,8 +4,8 @@ import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
 import io.ktor.util.ValuesMap
 import online.javanese.krud.WebEnv
-import online.javanese.krud.crud.RecordAction
 import online.javanese.krud.crud.RecordActionRoute
+import online.javanese.krud.crud.RecordEndpoint
 import online.javanese.krud.crud.TableAndRecord
 import online.javanese.krud.crud.toMap
 import online.javanese.krud.template.Content
@@ -13,7 +13,7 @@ import online.javanese.krud.toStringMap
 
 internal fun Edit(
         deleteRoute: RecordActionRoute, reviewRoute: RecordActionRoute
-): RecordAction = { env, call, tableAndRecord, _, post ->
+): RecordEndpoint = { env, call, tableAndRecord, _, post ->
     captureTAndReturnForm(env, call, tableAndRecord, post, deleteRoute, reviewRoute)
 }
 private suspend fun <T : Any> captureTAndReturnForm(

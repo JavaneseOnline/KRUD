@@ -8,13 +8,13 @@ import online.javanese.krud.template.Content
 import online.javanese.krud.template.Link
 
 internal fun List(
-        createRoute: TableActionRoute, reorderRoute: TableActionRoute, editRoute: RecordActionRoute,
+        createRoute: TablePageRoute, reorderRoute: TableActionRoute, editRoute: RecordPageRoute,
         transformTitle: (String) -> String
-): TableAction = { env, call, table, _, _ ->
+): TableEndpoint = { env, call, table, _, _ ->
     captureEAndReturnList(createRoute, reorderRoute, editRoute, env, call, table, transformTitle)
 }
 private suspend fun <E : Any> captureEAndReturnList(
-        createRoute: TableActionRoute, reorderRoute: TableActionRoute, editRoute: RecordActionRoute,
+        createRoute: TablePageRoute, reorderRoute: TableActionRoute, editRoute: RecordPageRoute,
         env: WebEnv, call: ApplicationCall, table: Table<E, *>,
         transformTitle: (String) -> String
 ) = call.respondHtml {
@@ -36,5 +36,5 @@ private suspend fun <E : Any> captureEAndReturnList(
             }
     )
 }
-private fun <T : Any> createLinkToEditRecord(editRoute: RecordActionRoute, env: WebEnv, table: Table<T, *>, record: T, transformTitle: (String) -> String) =
+private fun <T : Any> createLinkToEditRecord(editRoute: RecordPageRoute, env: WebEnv, table: Table<T, *>, record: T, transformTitle: (String) -> String) =
         Link(editRoute.addressOf(env, table, record), transformTitle(table.getTitle(record)))

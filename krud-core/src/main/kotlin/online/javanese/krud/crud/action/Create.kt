@@ -2,11 +2,11 @@ package online.javanese.krud.crud.action
 
 import io.ktor.html.respondHtml
 import online.javanese.krud.crud.Col
-import online.javanese.krud.crud.TableAction
-import online.javanese.krud.crud.TableActionRoute
+import online.javanese.krud.crud.TableEndpoint
+import online.javanese.krud.crud.TablePageRoute
 import online.javanese.krud.template.Content
 
-internal fun Create(createRoute: TableActionRoute): TableAction = { env, call, table, _, post ->
+internal fun Create(createRoute: TablePageRoute): TableEndpoint = { env, call, table, _, post ->
 
     call.respondHtml {
         env.template(

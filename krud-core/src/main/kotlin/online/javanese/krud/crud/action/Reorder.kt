@@ -7,9 +7,9 @@ import io.ktor.response.respondText
 import io.ktor.util.ValuesMap
 import online.javanese.krud.crud.Sort
 import online.javanese.krud.crud.Table
-import online.javanese.krud.crud.TableAction
+import online.javanese.krud.crud.TableEndpoint
 
-internal fun Reorder(): TableAction = { env, call, table, _, post ->
+internal fun Reorder(): TableEndpoint = { env, call, table, _, post ->
     captureIdAndReorder(call, table, post)
 }
 private suspend fun <ID> captureIdAndReorder(call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
