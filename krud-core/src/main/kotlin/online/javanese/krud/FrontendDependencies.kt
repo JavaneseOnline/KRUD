@@ -26,6 +26,17 @@ object NoFrontendDependencies : FrontendDependencies {
 }
 
 /**
+ * Just a container.
+ */
+class SimpleFrontendDependencies(
+        private val css: Set<String> = emptySet(),
+        private val js: Set<String> = emptySet()
+) : FrontendDependencies {
+    override fun requiredCss(staticPath: String): Set<String> = css
+    override fun requiredJs(staticPath: String): Set<String> = js
+}
+
+/**
  * Merges gives style and script addresses.
  */
 class CompositeFrontendDependencies(
