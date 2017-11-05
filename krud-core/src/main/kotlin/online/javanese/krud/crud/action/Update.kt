@@ -1,9 +1,13 @@
-package online.javanese.krud.crud
+package online.javanese.krud.crud.action
 
 import io.ktor.application.ApplicationCall
 import io.ktor.response.respondRedirect
 import io.ktor.util.ValuesMap
 import online.javanese.krud.WebEnv
+import online.javanese.krud.crud.RecordAction
+import online.javanese.krud.crud.TableActionRoute
+import online.javanese.krud.crud.TableAndRecord
+import online.javanese.krud.crud.toMap
 import online.javanese.krud.toStringMap
 
 internal fun Update(listRoute: TableActionRoute): RecordAction = { env, call, tableAndRecord, _, post ->

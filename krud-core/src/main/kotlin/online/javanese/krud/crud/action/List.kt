@@ -1,8 +1,9 @@
-package online.javanese.krud.crud
+package online.javanese.krud.crud.action
 
 import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
 import online.javanese.krud.WebEnv
+import online.javanese.krud.crud.*
 import online.javanese.krud.template.Content
 import online.javanese.krud.template.Link
 
