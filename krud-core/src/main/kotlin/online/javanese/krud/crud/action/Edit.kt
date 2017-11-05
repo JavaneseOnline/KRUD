@@ -28,12 +28,12 @@ private suspend fun <T : Any> captureTAndReturnForm(
         env.template(
                 this,
                 "Editing $recordTitle in ${table.displayName} — Crud",
-                Content.Form(
+                listOf(Content.Form(
                         recordTitle,
                         Content.Form.Mode.Edit(deleteRoute.addressOf(env, table, record)),
                         table.cols.mapNotNull { col -> updated[col.name]?.let { value -> col.editControl to value } },
                         reviewRoute.addressOf(env, table, record)
-                )
+                ))
         )
     }
 }

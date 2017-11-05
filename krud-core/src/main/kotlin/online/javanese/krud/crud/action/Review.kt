@@ -27,7 +27,7 @@ private suspend fun <E : Any> captureEAndReturnPreUpdateTable(
         env.template(
                 this,
                 "Reviewing ${table.getTitle(newRecord)} in ${table.displayName} — Crud",
-                Content.Review(
+                listOf(Content.Review(
                         table.getTitle(newRecord),
                         map.toMap().mapNotNull { (key, values) ->
                             if (values.isEmpty()) null // skip values which were not passed
@@ -35,7 +35,7 @@ private suspend fun <E : Any> captureEAndReturnPreUpdateTable(
                         },
                         continueEditingRoute.addressOf(env, table, newRecord),
                         updateRoute.addressOf(env, table, newRecord)
-                )
+                ))
         )
     }
 }

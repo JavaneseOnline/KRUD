@@ -6,13 +6,13 @@ typealias AdminTemplate = (
         root: HTML,
         titleText: String,
         sidebarLinks: List<Link>,
-        content: Content
+        contents: List<Content>
 ) -> Unit
 
 typealias ModuleTemplate = (
         root: HTML,
         titleText: String,
-        content: Content
+        contents: List<Content>
 ) -> Unit
 
 class Link(

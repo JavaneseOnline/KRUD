@@ -18,7 +18,7 @@ class MaterialTemplate(
             root: HTML,
             titleText: String,
             sidebarLinks: List<Link>,
-            content: Content
+            contents: List<Content>
     ) {
         root.apply {
 
@@ -37,12 +37,14 @@ class MaterialTemplate(
                 styleLink("$staticPath/admin-material.min.css")
                 styleLink("$staticPath/dashboard.css")
 
-                if (content is Content.Form) {
-                    val styles = LinkedHashSet<String>()
-                    content.controlsAndValues.forEach { (control, _) ->
-                        control.requiredCss(staticPath).forEach {
-                            if (styles.add(it))
-                                styleLink(it)
+                val styles = LinkedHashSet<String>()
+                contents.forEach { content ->
+                    if (content is Content.Form) {
+                        content.controlsAndValues.forEach { (control, _) ->
+                            control.requiredCss(staticPath).forEach {
+                                if (styles.add(it))
+                                    styleLink(it)
+                            }
                         }
                     }
                 }
@@ -123,102 +125,14 @@ class MaterialTemplate(
 
                         div("mdl-grid demo-content") {
 
-                            when (content) {
-                                is Content.LinkList -> {
-                                    blockWithList(content.title, content.links, "", {}, { link ->
-                                        a(href = link.href, classes = "mdl-navigation__link" +
-                                                if (link.badge != null) " mdl-badge" else "") {
-
-                                            link.badge?.let { attributes.put("data-badge", it) }
-
-                                            // link to class page
-                                            +link.text
-                                        }
-                                    })
-                                }
-
-                                is Content.SortableLinkList -> {
-                                    blockWithList(content.title, content.linksAndIds, "sortable", {
-                                        attributes["data-action"] = content.updateAction
-                                    }, { (link, id) ->
-                                        id?.let { attributes["data-id"] = it }
-
-                                        a(href = link.href, classes = "mdl-navigation__link" +
-                                                if (link.badge != null) " mdl-badge" else "") {
-                                            link.badge?.let { attributes["data-badge"] = it }
-
-                                            // link to class page
-                                            +link.text
-                                        }
-                                    })
-                                }
-
-                                is Content.Form -> {
-                                    blockWithTitleAndForm(content.title) {
-
-                                        content.controlsAndValues.forEach { (ctl, value) ->
-                                            renderControl(ctl, value)
-                                        }
-
-                                        div {
-                                            button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
-                                                formAction = content.submitAction
-                                                +when (content.mode) {
-                                                    is Content.Form.Mode.Edit -> "Review"
-                                                    is Content.Form.Mode.Create -> "Create"
-                                                }
-                                            }
-
-                                            if (content.mode is Content.Form.Mode.Edit) {
-                                                button(type = ButtonType.submit, classes = raisedAccentedButtonClasses) {
-                                                    style = "margin-left: 16px"
-                                                    formAction = content.mode.removeAction
-                                                    onClick = "return confirm('O RLY?');"
-                                                    +"Remove"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                is Content.Review -> {
-                                    blockWithTitleAndForm(content.title) {
-                                        table("mdl-data-table mdl-js-data-table") {
-                                            tbody {
-                                                content.namesTitlesValues.forEach { (name, title, value) ->
-                                                    tr {
-                                                        td("mdl-data-table__cell--non-numeric") {
-                                                            +title
-                                                        }
-                                                        td("mdl-data-table__cell--non-numeric") {
-                                                            +value
-
-                                                            input(type = InputType.hidden, name = name) {
-                                                                this@input.value = value
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        div {
-                                            style = "margin-top: 16px"
-
-                                            button(type = ButtonType.submit, classes = flatButtonClasses) {
-                                                formAction = content.editAction
-                                                +"Edit"
-                                            }
-
-                                            button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
-                                                style = "margin-left: 16px"
-                                                formAction = content.updateAction
-                                                +"Update"
-                                            }
-                                        }
-                                    }
-                                }
-                            }.also { }
+                            contents.forEach { content ->
+                                when (content) {
+                                    is Content.LinkList -> renderLinkList(content)
+                                    is Content.SortableLinkList -> renderSortableLinkList(content)
+                                    is Content.Form -> renderForm(content)
+                                    is Content.Review -> renderReview(content)
+                                }.also { }
+                            }
                         }
                     }
 
@@ -247,12 +161,15 @@ class MaterialTemplate(
                     }
                 }
 
-                if (content is Content.Form) {
-                    val scripts = LinkedHashSet<String>()
-                    content.controlsAndValues.forEach { (control, _) ->
-                        control.requiredJs(staticPath).forEach {
-                            if (scripts.add(it))
-                                script(src = it)
+
+                val scripts = LinkedHashSet<String>()
+                contents.forEach { content ->
+                    if (content is Content.Form) {
+                        content.controlsAndValues.forEach { (control, _) ->
+                            control.requiredJs(staticPath).forEach {
+                                if (scripts.add(it))
+                                    script(src = it)
+                            }
                         }
                     }
                 }
@@ -266,6 +183,105 @@ class MaterialTemplate(
     private class MAIN(consumer: TagConsumer<*>, classes: String?) :
             HTMLTag("main", consumer, mapOf("class" to (classes ?: "")), inlineTag = false, emptyTag = false),
             FlowContent
+
+
+    private fun FlowContent.renderLinkList(content: Content.LinkList) {
+        blockWithList(content.title, content.links, "", {}, { link ->
+            a(href = link.href, classes = "mdl-navigation__link" +
+                    if (link.badge != null) " mdl-badge" else "") {
+
+                link.badge?.let { attributes.put("data-badge", it) }
+
+                // link to class page
+                +link.text
+            }
+        })
+    }
+
+    private fun FlowContent.renderSortableLinkList(content: Content.SortableLinkList) {
+        blockWithList(content.title, content.linksAndIds, "sortable", {
+            attributes["data-action"] = content.updateAction
+        }, { (link, id) ->
+            id?.let { attributes["data-id"] = it }
+
+            a(href = link.href, classes = "mdl-navigation__link" +
+                    if (link.badge != null) " mdl-badge" else "") {
+                link.badge?.let { attributes["data-badge"] = it }
+
+                // link to class page
+                +link.text
+            }
+        })
+    }
+
+    private fun FlowContent.renderForm(content: Content.Form) {
+        blockWithTitleAndForm(content.title) {
+
+            content.controlsAndValues.forEach { (ctl, value) ->
+                renderControl(ctl, value)
+            }
+
+            div {
+                button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
+                    formAction = content.submitAction
+                    +when (content.mode) {
+                        is Content.Form.Mode.Edit -> "Review"
+                        is Content.Form.Mode.Create -> "Create"
+                    }
+                }
+
+                if (content.mode is Content.Form.Mode.Edit) {
+                    button(type = ButtonType.submit, classes = raisedAccentedButtonClasses) {
+                        style = "margin-left: 16px"
+                        formAction = content.mode.removeAction
+                        onClick = "return confirm('O RLY?');"
+                        +"Remove"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun FlowContent.renderReview(content: Content.Review) {
+        blockWithTitleAndForm(content.title) {
+            table("mdl-data-table mdl-js-data-table") {
+                tbody {
+                    content.namesTitlesValues.forEach { (name, title, value) ->
+                        tr {
+                            td("mdl-data-table__cell--non-numeric") {
+                                +title
+                            }
+                            td("mdl-data-table__cell--non-numeric") {
+                                +value
+
+                                input(type = InputType.hidden, name = name) {
+                                    this@input.value = value
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            div {
+                style = "margin-top: 16px"
+
+                button(type = ButtonType.submit, classes = flatButtonClasses) {
+                    formAction = content.editAction
+                    +"Edit"
+                }
+
+                button(type = ButtonType.submit, classes = raisedColouredButtonClasses) {
+                    style = "margin-left: 16px"
+                    formAction = content.updateAction
+                    +"Update"
+                }
+            }
+        }
+    }
+
+
+
 
     private fun FlowOrPhrasingContent.materialIcon(icon: String, text: String, classes: String? = null) {
         i(classes?.let { "$it material-icons" } ?: "material-icons") {

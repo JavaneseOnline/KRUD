@@ -23,7 +23,7 @@ private suspend fun <E : Any> captureEAndReturnList(
     env.template(
             this,
             "${table.displayName} — Crud",
-            when (table.sort) {
+            listOf(when (table.sort) {
                 is Sort.NoneOrImplicit -> Content.LinkList(
                         table.displayName,
                         all.map { createLinkToEditRecord(editRoute, env, table, it, transformTitle) } + createNew
@@ -33,7 +33,7 @@ private suspend fun <E : Any> captureEAndReturnList(
                         all.map { createLinkToEditRecord(editRoute, env, table, it, transformTitle) to table.getId(it).toString() } + (createNew to null),
                         reorderRoute.addressOf(env, table)
                 )
-            }
+            })
     )
 }
 private fun <T : Any> createLinkToEditRecord(editRoute: RecordPageRoute, env: WebEnv, table: Table<T, *>, record: T, transformTitle: (String) -> String) =

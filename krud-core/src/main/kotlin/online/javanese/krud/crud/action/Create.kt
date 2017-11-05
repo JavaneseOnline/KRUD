@@ -12,7 +12,7 @@ internal fun Create(createRoute: TablePageRoute): TableEndpoint = { env, call, t
         env.template(
                 this,
                 "Creating new ${table.displayName} — Crud",
-                Content.Form(
+                listOf(Content.Form(
                         "New ${table.displayName}",
                         Content.Form.Mode.Create,
                         table.cols.asSequence()
@@ -20,7 +20,7 @@ internal fun Create(createRoute: TablePageRoute): TableEndpoint = { env, call, t
                                 .filterNotNull().map { it to "" }
                                 .toList(),
                         createRoute.addressOf(env, table)
-                )
+                ))
         )
     }
 }
