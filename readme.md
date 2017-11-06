@@ -5,7 +5,7 @@ General-purpose CRUD admin-panel for [ktor](http://ktor.io/).
 
 ### Running
 
-VM options: `-Xms16M -Xmx16M -Xss180K` (`-Xss256K` for JDK 8) (yeah, I'm greedy.)
+VM options: `-Xms8M -Xmx16M -Xss180K` (`-Xss256K` for JDK 8) (yeah, I'm greedy.)
 
 Command-line args:
 ```
