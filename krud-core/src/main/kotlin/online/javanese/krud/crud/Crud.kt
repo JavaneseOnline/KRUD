@@ -69,7 +69,7 @@ class Crud(
     private val tableActions: List<RoutedTableEndpoint> = listOf(List, Reorder, Create, Insert)
     private val recordActions: List<RoutedRecordEndpoint> = listOf(Edit, Review, ContinueEditing, Delete, Update)
 
-    suspend override fun request(
+    suspend override fun http(
             env: WebEnv,
             call: ApplicationCall,
             httpRequest: HttpRequest
@@ -139,6 +139,12 @@ class Crud(
                 ?: return call.respondText("Item was not found", ContentType.Text.Plain, HttpStatusCode.NotFound)
 
         code(item)
+    }
+
+    override suspend fun webSocket(routePrefix: String, request: WsRequest) {
+        request.call.respondText(
+                "This module does not support WebSocket.", ContentType.Text.Plain,
+                HttpStatusCode.MethodNotAllowed)
     }
 
     private companion object {

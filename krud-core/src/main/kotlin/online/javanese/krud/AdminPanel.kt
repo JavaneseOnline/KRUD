@@ -7,6 +7,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 import io.ktor.util.ValuesMap
+import io.ktor.websocket.Frame
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.SendChannel
 import online.javanese.krud.template.AdminTemplate
 import online.javanese.krud.template.Link
 import online.javanese.krud.template.ModuleTemplate
@@ -41,14 +44,14 @@ class AdminPanel(
         val summaries = modules.map { it.module.summary(it.webEnv) }
 
         call.respondHtml {
-            moduleTemplate(this, "Dashboard — Admin", summaries)
+            moduleTemplate(this, "Dashboard", summaries)
         }
     }
 
     /**
      * Proxies call to according [Module], if any.
      */
-    suspend fun request(
+    suspend fun http(
             call: ApplicationCall,
             method: HttpMethod,
             modulePath: String,
@@ -59,9 +62,26 @@ class AdminPanel(
         val routedModule = modules.firstOrNull { it.route == modulePath }
                 ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
 
-        routedModule.module.request(
+        routedModule.module.http(
                 routedModule.webEnv,
                 call, HttpRequest(method, pathSegments, query = query, post = post))
+    }
+
+    suspend fun webSocket(
+            call: ApplicationCall,
+            modulePath: String,
+            pathSegments: List<String>,
+            query: ValuesMap,
+            incoming: ReceiveChannel<Frame>,
+            outgoing: SendChannel<Frame>
+    ) {
+        val routedModule = modules.firstOrNull { it.route == modulePath }
+                ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
+
+        routedModule.module.webSocket(
+                routePrefix,
+                WsRequest(call, pathSegments, query = query, incoming = incoming, outgoing = outgoing)
+        )
     }
 
 }

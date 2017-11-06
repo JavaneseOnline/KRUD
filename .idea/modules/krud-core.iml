@@ -45,6 +45,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.ktor:ktor-html-builder:0.9.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: io.ktor:ktor-websockets:0.9.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.ktor:ktor-server-core:0.9.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.ktor:ktor-http:0.9.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: io.ktor:ktor-utils:0.9.0" level="project" />
@@ -61,6 +62,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.jetbrains.kotlinx:kotlinx-io-jvm:0.0.6" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.ktor:ktor-html-builder:0.9.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: io.ktor:ktor-websockets:0.9.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.ktor:ktor-server-core:0.9.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.ktor:ktor-http:0.9.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: io.ktor:ktor-utils:0.9.0" level="project" />
@@ -77,6 +79,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.kotlinx:kotlinx-io-jvm:0.0.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.ktor:ktor-html-builder:0.9.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: io.ktor:ktor-websockets:0.9.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.ktor:ktor-server-core:0.9.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.ktor:ktor-http:0.9.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.ktor:ktor-utils:0.9.0" level="project" />

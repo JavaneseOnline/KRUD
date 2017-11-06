@@ -2,12 +2,14 @@ package online.javanese.krud.stat
 
 import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
-import kotlinx.html.h6
-import kotlinx.html.li
-import kotlinx.html.ul
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
+import kotlinx.html.*
 import online.javanese.krud.HttpRequest
 import online.javanese.krud.Module
 import online.javanese.krud.WebEnv
+import online.javanese.krud.WsRequest
 import online.javanese.krud.template.Content
 
 class HardwareStat : Module {
@@ -48,11 +50,17 @@ class HardwareStat : Module {
         return "%.2f %s".format(bytez, units[unitIdx])
     }
 
-    override suspend fun request(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
+    override suspend fun http(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
         val summary = summary(env)
         call.respondHtml {
             env.template(this, "Hardware", listOf(summary))
         }
+    }
+
+    override suspend fun webSocket(routePrefix: String, request: WsRequest) {
+        request.call.respondText(
+                "This module does not support WebSocket.", ContentType.Text.Plain,
+                HttpStatusCode.MethodNotAllowed)
     }
 
 }

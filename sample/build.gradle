@@ -27,6 +27,7 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-server-netty:$ktor_version"
     compile "io.ktor:ktor-auth:$ktor_version"
+    compile "io.ktor:ktor-websockets:$ktor_version"
     compile project(':krud-core')
 }
 

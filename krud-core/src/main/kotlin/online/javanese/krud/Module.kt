@@ -22,10 +22,15 @@ interface Module {
     /**
      * Handle a request. Finally, implementation must call `call.respond...`.
      */
-    suspend fun request(
+    suspend fun http(
             env: WebEnv,
             call: ApplicationCall,
             httpRequest: HttpRequest
+    )
+
+    suspend fun webSocket(
+            routePrefix: String,
+            request: WsRequest
     )
 
 }

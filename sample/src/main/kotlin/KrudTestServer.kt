@@ -1,13 +1,19 @@
+import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authentication
 import io.ktor.auth.basicAuthentication
 import io.ktor.content.files
 import io.ktor.content.static
 import io.ktor.content.staticRootFolder
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
+import io.ktor.pipeline.PipelinePhase
 import io.ktor.request.receiveParameters
+import io.ktor.request.uri
 import io.ktor.response.respondRedirect
+import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
@@ -15,6 +21,8 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.ValuesMap
+import io.ktor.websocket.WebSockets
+import io.ktor.websocket.webSocket
 import online.javanese.krud.AdminPanel
 import online.javanese.krud.RoutedModule
 import online.javanese.krud.crud.Crud
@@ -41,7 +49,7 @@ object KrudTestServer {
 
         check(args.size == 2 && args[0] == "--static") {
             "Must specify static resources dir. " +
-                    "Sample usage: java -Xms8M -Xmx8M -Xss180K " +
+                    "Sample usage: java -Xms8M -Xmx16M -Xss180K " +
                     "-jar KrudTestServer.jar " +
                     "--static \"/home/<user>/IdeaProjects/krud/krud-core/src/main/resources/static\""
         }
@@ -73,8 +81,18 @@ object KrudTestServer {
         )
 
         embeddedServer(Netty, 8081) {
+            install(WebSockets)
 
             routing {
+
+                intercept(ApplicationCallPipeline.Call) {
+                    println(call.request.uri)
+                }
+
+                get("/test/") {
+                    call.respondText("This is a test.", ContentType.Text.Plain)
+                }
+
                 route("/admin/") {
 
                     authentication {
@@ -89,7 +107,7 @@ object KrudTestServer {
                     }
 
                     get("{module}/{tail...}") {
-                        admin.request(
+                        admin.http(
                                 call,
                                 HttpMethod.Get,
                                 call.parameters["module"]!!,
@@ -100,13 +118,24 @@ object KrudTestServer {
                     }
 
                     post("{module}/{tail...}") {
-                        admin.request(
+                        admin.http(
                                 call,
                                 HttpMethod.Post,
                                 call.parameters["module"]!!,
                                 call.parameters.getAll("tail")!!,
                                 call.parameters,
                                 call.receiveParameters()
+                        )
+                    }
+
+                    webSocket(path = "{module}/{tail...}") {
+                        admin.webSocket(
+                                call,
+                                call.parameters["module"]!!,
+                                call.parameters.getAll("tail")!!,
+                                call.parameters,
+                                incoming,
+                                outgoing
                         )
                     }
 
