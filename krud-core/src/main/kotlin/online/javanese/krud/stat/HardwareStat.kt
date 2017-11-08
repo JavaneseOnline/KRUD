@@ -8,10 +8,7 @@ import io.ktor.response.respondText
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.delay
 import kotlinx.html.*
-import online.javanese.krud.HttpRequest
-import online.javanese.krud.Module
-import online.javanese.krud.WebEnv
-import online.javanese.krud.WsRequest
+import online.javanese.krud.*
 import online.javanese.krud.template.Content
 
 class HardwareStat : Module {
@@ -19,8 +16,6 @@ class HardwareStat : Module {
     override val name: String get() = "Hardware"
 
     private val units = arrayOf("B", "KiB", "MiB", "GiB")
-
-    private val divId = "hwstat${hashCode()}"
 
     override suspend fun summary(env: WebEnv): Content {
         val rt = Runtime.getRuntime()
@@ -33,15 +28,16 @@ class HardwareStat : Module {
         val used = usedBytes.normalized()
 
         return Content.Card(
-                "Hardware"/*,
-                dependencies = SimpleFrontendDependencies(
-                        js = setOf("https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js")
-                )*/
+                "Hardware",
+                dependencies = SimpleFrontendDependencies(js = setOf(
+                        "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js",
+                        "${env.routePrefix}/hwStat.js"
+                ))
         ) {
             h6 { +"Heap memory" }
 
             div {
-                id = divId
+                id = "hwStat"
 
                 ul {
                     li { +"Used: $used" }
@@ -49,12 +45,37 @@ class HardwareStat : Module {
                     li { +"Max: $max" }
                 }
             }
+        }
+    }
 
-            script(src = "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js")
-            script {
-                unsafe {
-+"""
-'use strict';
+    private fun Long.normalized(): String {
+        var unitIdx = 0
+        var bytez = toDouble()
+        while (bytez > 1536 && unitIdx < units.size-1) {
+            bytez /= 1024
+            unitIdx++
+        }
+
+        return "%.2f %s".format(bytez, units[unitIdx])
+    }
+
+    override suspend fun http(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
+        val pSegm = httpRequest.pathSegments
+        when {
+            pSegm.isEmpty() -> respondSummary(env, call)
+            pSegm.size == 1 && pSegm[0] == "hwStat.js" -> respondScript(env, call)
+        }
+    }
+
+    private suspend fun respondSummary(env: WebEnv, call: ApplicationCall) {
+        val summary = summary(env)
+        call.respondHtml {
+            env.template(this, "Hardware", listOf(summary))
+        }
+    }
+
+    private suspend fun respondScript(env: WebEnv, call: ApplicationCall) {
+        call.respondText("""'use strict';
 
 var units = [ "B", "KiB", "MiB", "GiB" ];
 function normalized(bytes) {
@@ -70,7 +91,7 @@ function normalized(bytes) {
 }
 
 new Vue({
-    el: '#$divId',
+    el: '#hwStat',
     data: {
         usedBytes: -1,
         allocatedBytes: -1,
@@ -112,28 +133,7 @@ new Vue({
         }
     }
 });
-"""
-                }
-            }
-        }
-    }
-
-    private fun Long.normalized(): String {
-        var unitIdx = 0
-        var bytez = toDouble()
-        while (bytez > 1536 && unitIdx < units.size-1) {
-            bytez /= 1024
-            unitIdx++
-        }
-
-        return "%.2f %s".format(bytez, units[unitIdx])
-    }
-
-    override suspend fun http(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
-        val summary = summary(env)
-        call.respondHtml {
-            env.template(this, "Hardware", listOf(summary))
-        }
+""", ContentType.Application.JavaScript, HttpStatusCode.OK)
     }
 
     override suspend fun webSocket(routePrefix: String, request: WsRequest) {
