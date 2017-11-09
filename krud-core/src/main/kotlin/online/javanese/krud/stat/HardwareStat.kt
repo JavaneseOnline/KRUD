@@ -8,6 +8,7 @@ import io.ktor.response.respondText
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.delay
 import kotlinx.html.*
+import kotlinx.html.stream.appendHTML
 import online.javanese.krud.*
 import online.javanese.krud.template.Content
 
@@ -36,15 +37,7 @@ class HardwareStat : Module {
         ) {
             h6 { +"Heap memory" }
 
-            div {
-                id = "hwStat"
-
-                ul {
-                    li { +"Used: $used" }
-                    li { +"Allocated: $allocated" }
-                    li { +"Max: $max" }
-                }
-            }
+            consumer.renderStatBlock(used, allocated, max, "Just loaded.")
         }
     }
 
@@ -110,8 +103,7 @@ new Vue({
             return normalized(this.maxBytes);
         }
     },
-    template:
-        '<div><ul><li>Used: {{used}}</li>\n<li>Allocated: {{allocated}}</li><li>Max: {{max}}</li></ul><span>{{status}}</span></div>',
+    template: '${ renderHtml { renderStatBlock("{{used}}", "{{allocated}}", "{{max}}", "{{status}}") } }',
     created: function() {
         this.connection = new WebSocket('ws://' + location.host + '${env.routePrefix}/reactiveHwStat');
         var zis = this;
@@ -154,6 +146,23 @@ new Vue({
                     Frame.Text("""{"usedBytes":$usedBytes,"allocatedBytes":$allocatedBytes,"maxBytes":$maxBytes}""")
             )
             delay(1000)
+        }
+    }
+
+    private fun renderHtml(dsl: TagConsumer<*>.() -> Unit) = buildString { appendHTML(false).dsl() }
+
+    private fun TagConsumer<*>.renderStatBlock(
+            used: String, allocated: String, max: String, status: String
+    ) {
+        div {
+            id = "hwStat"
+
+            ul {
+                li { +"Used: $used" }
+                li { +"Allocated: $allocated" }
+                li { +"Max: $max" }
+            }
+            span { +status }
         }
     }
 
