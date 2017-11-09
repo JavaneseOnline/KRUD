@@ -8,9 +8,9 @@ import io.ktor.response.respondText
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.delay
 import kotlinx.html.*
-import kotlinx.html.stream.appendHTML
 import online.javanese.krud.*
 import online.javanese.krud.template.Content
+import online.javanese.krud.template.renderHtml
 
 class HardwareStat : Module {
 
@@ -148,8 +148,6 @@ new Vue({
             delay(1000)
         }
     }
-
-    private fun renderHtml(dsl: TagConsumer<*>.() -> Unit) = buildString { appendHTML(false).dsl() }
 
     private fun TagConsumer<*>.renderStatBlock(
             used: String, allocated: String, max: String, status: String
