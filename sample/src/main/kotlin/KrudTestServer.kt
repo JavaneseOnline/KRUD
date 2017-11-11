@@ -9,10 +9,7 @@ import io.ktor.content.static
 import io.ktor.content.staticRootFolder
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
-import io.ktor.pipeline.PipelinePhase
 import io.ktor.request.receiveParameters
-import io.ktor.request.uri
-import io.ktor.response.respondRedirect
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -30,6 +27,9 @@ import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
 import online.javanese.krud.stat.HardwareStat
+import online.javanese.krud.stat.HitStat
+import online.javanese.krud.stat.InMemoryStatTable
+import online.javanese.krud.stat.UserAgent
 import online.javanese.krud.template.HtmlCodeMirror
 import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.template.TextArea
@@ -55,6 +55,8 @@ object KrudTestServer {
         }
         val staticResDir = args[1]
 
+        val noUa = UserAgent("", "", "")
+        val stat = HitStat(InMemoryStatTable({ noUa }, ignoreRequestUri = { it.endsWith(".js") || it.endsWith(".css") }))
         val admin = AdminPanel(
                 "/admin",
                 MaterialTemplate("/admin", "/admin/path/to/static/resources"),
@@ -77,7 +79,8 @@ object KrudTestServer {
                                 sortable = true
                         )
                 )),
-                RoutedModule("hwStat", HardwareStat())
+                RoutedModule("hwStat", HardwareStat()),
+                RoutedModule("stat", stat)
         )
 
         embeddedServer(Netty, 8081) {
@@ -86,7 +89,7 @@ object KrudTestServer {
             routing {
 
                 intercept(ApplicationCallPipeline.Call) {
-                    println(call.request.uri)
+                    stat.trackVisit(call)
                 }
 
                 get("/test/") {
