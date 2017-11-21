@@ -201,27 +201,44 @@ interface Col<OWNR : Any> {
  * Primary key column. Read-only <input type=text>
  */
 class IdCol<OWNR : Any, ID>(
-        private val property: KProperty1<OWNR, ID>,
-        title: String = "ID",
-        private val toString: (ID) -> String = Any?::toString
+        private val getStringValue: (OWNR) -> String,
+        override val name: String,
+        title: String = "ID"
 ): Col<OWNR> {
-    override fun getValue(owner: OWNR): String = toString(property.get(owner))
-    override val name: String get() = property.name
+
+    constructor(
+            property: KProperty1<OWNR, ID>,
+            title: String = "ID",
+            toString: (ID) -> String = Any?::toString
+    ) : this(
+            { ownr -> toString(property.get(ownr)) }, property.name, title
+    )
+
+    override fun getValue(owner: OWNR): String = getStringValue(owner)
     override val createControl: Control get() = EmptyControl
-    override val editControl: Control = TextInput(property.name, title, editable = false)
+    override val editControl: Control = TextInput(name, title, editable = false)
 }
 
 /**
  * Ordinary text column. Editable <input type=text>
  */
 class TextCol<OWNR : Any, T>(
-        private val property: KProperty1<OWNR, T>,
-        title: String = property.name.capitalize(),
-        private val toString: (T) -> String = Any?::toString,
+        private val getStringValue: (OWNR) -> String,
+        override val name: String,
+        title: String = name.capitalize(),
         controlFactory: (name: String, title: String) -> Control = TextInput
 ) : Col<OWNR> {
-    override fun getValue(owner: OWNR): String = toString(property.get(owner))
-    override val name: String get() = property.name
+
+    constructor(
+            property: KProperty1<OWNR, T>,
+            title: String = property.name.capitalize(),
+            toString: (T) -> String = Any?::toString,
+            controlFactory: (name: String, title: String) -> Control = TextInput
+    ) : this(
+            { ownr -> toString(property.get(ownr)) }, property.name, title, controlFactory
+    )
+
+    override fun getValue(owner: OWNR): String = getStringValue(owner)
     private val control: Control = controlFactory(name, title)
     override val createControl: Control get() = control
     override val editControl: Control get() = control
