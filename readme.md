@@ -7,7 +7,3 @@ General-purpose CRUD admin-panel for [ktor](http://ktor.io/).
 
 VM options: `-Xms8M -Xmx16M -Xss180K` (`-Xss256K` for JDK 8) (yeah, I'm greedy.)
 
-Command-line args:
-```
---static "/home/<user>/IdeaProjects/krud/krud-core/src/main/resources/static"
-```

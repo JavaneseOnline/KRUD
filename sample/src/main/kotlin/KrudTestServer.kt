@@ -4,12 +4,11 @@ import io.ktor.application.install
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authentication
 import io.ktor.auth.basicAuthentication
-import io.ktor.content.files
-import io.ktor.content.static
-import io.ktor.content.staticRootFolder
+import io.ktor.content.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.request.receiveParameters
+import io.ktor.request.uri
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -33,7 +32,6 @@ import online.javanese.krud.stat.UserAgent
 import online.javanese.krud.template.HtmlCodeMirror
 import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.template.TextArea
-import java.io.File
 import java.util.*
 
 object KrudTestServer {
@@ -46,20 +44,11 @@ object KrudTestServer {
      */
     @JvmStatic
     fun main(args: Array<String>) {
-
-        check(args.size == 2 && args[0] == "--static") {
-            "Must specify static resources dir. " +
-                    "Sample usage: java -Xms8M -Xmx16M -Xss180K " +
-                    "-jar KrudTestServer.jar " +
-                    "--static \"/home/<user>/IdeaProjects/krud/krud-core/src/main/resources/static\""
-        }
-        val staticResDir = args[1]
-
         val noUa = UserAgent("", "", "")
         val stat = HitStat(InMemoryStatTable({ noUa }, ignoreRequestUri = { it.endsWith(".js") || it.endsWith(".css") }))
         val admin = AdminPanel(
                 "/admin",
-                MaterialTemplate("/admin", "/admin/path/to/static/resources"),
+                MaterialTemplate("/admin", "/static"),
                 RoutedModule("crud", Crud(
                         InMemoryTable(
                                 "item", "Item", Item::id, Item::name, UUID::fromString,
@@ -89,6 +78,7 @@ object KrudTestServer {
             routing {
 
                 intercept(ApplicationCallPipeline.Call) {
+                    println(call.request.uri)
                     stat.trackVisit(call)
                 }
 
@@ -144,10 +134,11 @@ object KrudTestServer {
 
                 }
 
-                static("admin/path/to/static/resources") {
-                    val localStaticDirFile = File(staticResDir)
-                    staticRootFolder = localStaticDirFile.parentFile
-                    files(localStaticDirFile.name)
+                static("static") {
+//                    val localStaticDirFile = File(staticResDir)
+//                    staticRootFolder = localStaticDirFile.parentFile
+//                    files(localStaticDirFile.name)
+                    resources("static")
                 }
             }
 
