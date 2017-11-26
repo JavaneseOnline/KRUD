@@ -3,8 +3,6 @@ import io.ktor.application.install
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authentication
 import io.ktor.auth.basicAuthentication
-import io.ktor.content.resources
-import io.ktor.content.static
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -20,6 +18,7 @@ import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
 import online.javanese.krud.installAdmin
+import online.javanese.krud.krudStaticResources
 import online.javanese.krud.stat.*
 import online.javanese.krud.template.HtmlCodeMirror
 import online.javanese.krud.template.MaterialTemplate
@@ -40,7 +39,7 @@ object KrudTestServer {
         val stat = HitStat(InMemoryStatTable({ noUa }, ignoreRequestUri = { it.endsWith(".js") || it.endsWith(".css") }))
         val admin = AdminPanel(
                 "/admin",
-                MaterialTemplate("/admin", "/static"),
+                MaterialTemplate("/admin", "/krud-static"),
                 RoutedModule("crud", Crud(
                         InMemoryTable(
                                 "item", "Item", Item::id, Item::name, UUID::fromString,
@@ -88,12 +87,7 @@ object KrudTestServer {
 
                 }
 
-                static("static") {
-//                    val localStaticDirFile = File(staticResDir)
-//                    staticRootFolder = localStaticDirFile.parentFile
-//                    files(localStaticDirFile.name)
-                    resources("static")
-                }
+                krudStaticResources("krud-static")
             }
 
         }.start(true)
