@@ -4,27 +4,24 @@ import io.ktor.application.install
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authentication
 import io.ktor.auth.basicAuthentication
-import io.ktor.content.*
+import io.ktor.content.resources
+import io.ktor.content.static
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.request.receiveParameters
 import io.ktor.request.uri
 import io.ktor.response.respondText
 import io.ktor.routing.get
-import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.util.ValuesMap
 import io.ktor.websocket.WebSockets
-import io.ktor.websocket.webSocket
 import online.javanese.krud.AdminPanel
 import online.javanese.krud.RoutedModule
 import online.javanese.krud.crud.Crud
 import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
+import online.javanese.krud.installAdmin
 import online.javanese.krud.stat.HardwareStat
 import online.javanese.krud.stat.HitStat
 import online.javanese.krud.stat.InMemoryStatTable
@@ -78,7 +75,6 @@ object KrudTestServer {
             routing {
 
                 intercept(ApplicationCallPipeline.Call) {
-                    println(call.request.uri)
                     stat.trackVisit(call)
                 }
 
@@ -88,48 +84,13 @@ object KrudTestServer {
 
                 route("/admin/") {
 
+                    installAdmin(admin)
+
                     authentication {
                         basicAuthentication("Admin") { cred ->
                             if (cred.name == "admin" && cred.password == "admin") UserIdPrincipal("admin")
                             else null
                         }
-                    }
-
-                    get("") {
-                        admin.dashboard(call)
-                    }
-
-                    get("{module}/{tail...}") {
-                        admin.http(
-                                call,
-                                HttpMethod.Get,
-                                call.parameters["module"]!!,
-                                call.parameters.getAll("tail")!!,
-                                call.parameters,
-                                ValuesMap.Empty
-                        )
-                    }
-
-                    post("{module}/{tail...}") {
-                        admin.http(
-                                call,
-                                HttpMethod.Post,
-                                call.parameters["module"]!!,
-                                call.parameters.getAll("tail")!!,
-                                call.parameters,
-                                call.receiveParameters()
-                        )
-                    }
-
-                    webSocket(path = "{module}/{tail...}") {
-                        admin.webSocket(
-                                call,
-                                call.parameters["module"]!!,
-                                call.parameters.getAll("tail")!!,
-                                call.parameters,
-                                incoming,
-                                outgoing
-                        )
                     }
 
                 }
