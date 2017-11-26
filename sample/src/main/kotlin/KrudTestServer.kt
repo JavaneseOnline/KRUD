@@ -1,4 +1,3 @@
-import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.UserIdPrincipal
@@ -7,7 +6,6 @@ import io.ktor.auth.basicAuthentication
 import io.ktor.content.resources
 import io.ktor.content.static
 import io.ktor.http.ContentType
-import io.ktor.request.uri
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.route
@@ -22,10 +20,7 @@ import online.javanese.krud.crud.IdCol
 import online.javanese.krud.crud.InMemoryTable
 import online.javanese.krud.crud.TextCol
 import online.javanese.krud.installAdmin
-import online.javanese.krud.stat.HardwareStat
-import online.javanese.krud.stat.HitStat
-import online.javanese.krud.stat.InMemoryStatTable
-import online.javanese.krud.stat.UserAgent
+import online.javanese.krud.stat.*
 import online.javanese.krud.template.HtmlCodeMirror
 import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.template.TextArea
@@ -74,9 +69,7 @@ object KrudTestServer {
 
             routing {
 
-                intercept(ApplicationCallPipeline.Call) {
-                    stat.trackVisit(call)
-                }
+                installHitStatInterceptor(stat)
 
                 get("/test/") {
                     call.respondText("This is a test.", ContentType.Text.Plain)
