@@ -10,9 +10,13 @@ import io.ktor.util.ValuesMap
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
+import kotlinx.html.pre
 import online.javanese.krud.template.AdminTemplate
+import online.javanese.krud.template.Content
 import online.javanese.krud.template.Link
 import online.javanese.krud.template.ModuleTemplate
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
 /**
  * This is a base, a host, a router for [Module]s.
@@ -41,7 +45,7 @@ class AdminPanel(
      * Renders a dashboard.
      */
     suspend fun dashboard(call: ApplicationCall) {
-        val summaries = modules.map { it.module.summary(it.webEnv) }
+        val summaries = modules.map { tryOrRenderFail { it.module.summary(it.webEnv) } }
 
         call.respondHtml {
             moduleTemplate(this, "Dashboard", summaries)
@@ -62,9 +66,11 @@ class AdminPanel(
         val routedModule = modules.firstOrNull { it.route == modulePath }
                 ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
 
-        routedModule.module.http(
-                routedModule.webEnv,
-                call, HttpRequest(method, pathSegments, query = query, post = post))
+        tryOrReturnFail(call) {
+            routedModule.module.http(
+                    routedModule.webEnv,
+                    call, HttpRequest(method, pathSegments, query = query, post = post))
+        }
     }
 
     suspend fun webSocket(
@@ -82,6 +88,30 @@ class AdminPanel(
                 routePrefix,
                 WsRequest(call, pathSegments, query = query, incoming = incoming, outgoing = outgoing)
         )
+    }
+
+    private suspend fun tryOrRenderFail(code: suspend () -> Content) = try {
+        code()
+    } catch (t: Throwable) {
+        renderFail(t)
+    }
+
+    private suspend fun tryOrReturnFail(call: ApplicationCall, code: suspend () -> Unit) {
+        try {
+            code()
+        } catch (t: Throwable) {
+            call.respondHtml {
+                moduleTemplate(this, "Module failed", listOf(renderFail(t)))
+            }
+        }
+    }
+
+    private fun renderFail(t: Throwable): Content = Content.Card("Module failed", width = Content.Card.Width.Full) {
+        pre {
+            val traceOs = ByteArrayOutputStream()
+            t.printStackTrace(PrintStream(traceOs))
+            +traceOs.toString()
+        }
     }
 
 }
