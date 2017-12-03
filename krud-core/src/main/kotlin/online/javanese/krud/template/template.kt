@@ -94,7 +94,12 @@ sealed class Content {
     class Card(
             val title: String,
             override val dependencies: FrontendDependencies = NoFrontendDependencies,
+            val width: Width = Width.Normal,
             val renderContent: FlowContent.() -> Unit
-    ) : Content()
+    ) : Content() {
+
+        enum class Width { Slim, Normal, Wide, Full }
+
+    }
 
 }

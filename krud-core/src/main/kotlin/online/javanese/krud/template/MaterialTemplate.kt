@@ -14,6 +14,12 @@ class MaterialTemplate(
     private val raisedColouredButtonClasses = "mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
     private val raisedAccentedButtonClasses = "mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect"
 
+    private val cardWidths =
+            arrayOf("mdl-cell--2-col", "mdl-cell--4-col", "mdl-cell--8-col", "mdl-cell--12-col")
+    init {
+        check(cardWidths.size == Content.Card.Width.values().size) // assert all available widths supported
+    }
+
     override fun invoke(
             root: HTML,
             titleText: String,
@@ -127,7 +133,7 @@ class MaterialTemplate(
                                     is Content.SortableLinkList -> renderSortableLinkList(content)
                                     is Content.Form -> renderForm(content)
                                     is Content.Review -> renderReview(content)
-                                    is Content.Card -> renderTitledBlock(content.title, content.renderContent)
+                                    is Content.Card -> renderTitledBlock(content.title, content.width, content.renderContent)
                                 }.also { }
                             }
                         }
@@ -273,8 +279,8 @@ class MaterialTemplate(
         }
     }
 
-    private fun FlowContent.renderTitledBlock(title: String, renderContent: FlowContent.() -> Unit) {
-        div("mdl-card mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--4-col") {
+    private fun FlowContent.renderTitledBlock(title: String, width: Content.Card.Width, renderContent: FlowContent.() -> Unit) {
+        div("mdl-card mdl-color--white mdl-shadow--2dp mdl-cell ${cardWidths[width.ordinal]}") {
             div("mdl-card__supporting-text") {
                 h3 { +title }
 
@@ -310,7 +316,7 @@ class MaterialTemplate(
             title: String, items: List<T>, ulClasses: String,
             crossinline configureList: UL.() -> Unit, crossinline renderItem: LI.(T) -> Unit
     ) {
-        renderTitledBlock(title) {
+        renderTitledBlock(title, Content.Card.Width.Normal) {
             ul("mdl-list m-v-0 p-v-0${if (ulClasses.isNotBlank()) ' ' + ulClasses else ""}") {
                 configureList()
                 items.forEach { item ->
