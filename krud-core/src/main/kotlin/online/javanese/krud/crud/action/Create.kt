@@ -1,7 +1,7 @@
 package online.javanese.krud.crud.action
 
 import io.ktor.html.respondHtml
-import online.javanese.krud.crud.Col
+import online.javanese.krud.crud.Column
 import online.javanese.krud.crud.TableEndpoint
 import online.javanese.krud.crud.TablePageRoute
 import online.javanese.krud.template.Content
@@ -16,7 +16,7 @@ internal fun Create(createRoute: TablePageRoute): TableEndpoint = { env, call, t
                         "New ${table.displayName}",
                         Content.Form.Mode.Create,
                         table.cols.asSequence()
-                                .map(Col<*>::createControl)
+                                .map(Column<*>::createControl)
                                 .filterNotNull().map { it to "" }
                                 .toList(),
                         createRoute.addressOf(env, table)

@@ -1,12 +1,5 @@
 package online.javanese.krud.crud
 
-import online.javanese.krud.template.Control
-import online.javanese.krud.template.EmptyControl
-import online.javanese.krud.template.TextInput
-import java.util.Collections.unmodifiableList
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.reflect.KProperty1
-
 /**
  * Represents a table of [E] objects with [ID] primary key.
  */
@@ -74,7 +67,7 @@ interface Table<E : Any, ID> {
     /**
      * Return all available columns
      */
-    val cols: List<Col<E>>
+    val cols: List<Column<E>>
 
     /**
      * Create new [E] from map.
@@ -106,140 +99,4 @@ sealed class Sort<in ID> {
          */
         abstract fun updateOrder(newOrder: List<ID>)
     }
-}
-
-/**
- * Table which is being hold in memory, not persisted.
- */
-class InMemoryTable<E : Any, ID>(
-        override val route: String,
-        override val displayName: String,
-        private val idOf: (E) -> ID,
-        private val titleOf: (E) -> String,
-        private val stringToId: (String) -> ID,
-        cols: List<Col<E>>,
-        items: List<E>,
-        private val fromMap: (Map<String, String>) -> E,
-        sortable: Boolean
-) : Table<E, ID> {
-
-    private val itemsRef = AtomicReference<List<E>>(unmodifiableList(items.toList()))
-
-    override val count: Int get() = itemsRef.get().size
-
-    override fun findAll(): List<E> = itemsRef.get()
-    override fun findOne(id: ID): E? = itemsRef.get().singleOrNull { idOf(it) == id }
-    override fun save(e: E) {
-        val id = idOf(e)
-        itemsRef.updateAndGet { items ->
-            val idx = items.indexOfFirst { idOf(it) == id }
-            val updated = if (idx < 0) items + e else ArrayList(items).also { it[idx] = e }
-            unmodifiableList(updated)
-        }
-    }
-    override fun delete(id: ID) {
-        itemsRef.updateAndGet { items ->
-            unmodifiableList(items.filter { idOf(it) != id })
-        }
-    }
-
-    override val sort: Sort<ID> = if (sortable) {
-        object : Sort.Explicit<ID>() {
-            override fun updateOrder(newOrder: List<ID>) {
-                itemsRef.updateAndGet { items ->
-
-                    val sorted = newOrder.mapTo(ArrayList(items.size)) { id -> items.single { idOf(it) == id } }
-                    if (newOrder.size != items.size) {
-                        val unsorted = items.toMutableList()
-                        unsorted.removeAll(sorted)
-                        sorted.addAll(unsorted)
-                    }
-
-                    unmodifiableList(sorted)
-                }
-            }
-        }
-    } else {
-        Sort.NoneOrImplicit
-    }
-
-    override fun getId(e: E): ID = idOf(e)
-    override fun getTitle(e: E): String = titleOf(e)
-
-    override fun stringToId(s: String): ID = stringToId.invoke(s)
-    override val cols: List<Col<E>> = cols.toList()
-    override fun createFromMap(map: Map<String, String>): E = fromMap(map)
-
-}
-
-/**
- * Represents a table column.
- */
-interface Col<OWNR : Any> {
-    /**
-     * Returns value which user will see and, if acceptable, edit
-     */
-    fun getValue(owner: OWNR): String
-
-    /**
-     * Human-readable label
-     */
-    val name: String
-
-    /**
-     * UI control which will be user in Create form
-     */
-    val createControl: Control
-
-    /**
-     * UI control which will be user in Edit form
-     */
-    val editControl: Control
-}
-
-/**
- * Primary key column. Read-only <input type=text>
- */
-class IdCol<OWNR : Any, ID>(
-        private val getStringValue: (OWNR) -> String,
-        override val name: String,
-        title: String = "ID"
-): Col<OWNR> {
-
-    constructor(
-            property: KProperty1<OWNR, ID>,
-            title: String = "ID",
-            toString: (ID) -> String = Any?::toString
-    ) : this(
-            { ownr -> toString(property.get(ownr)) }, property.name, title
-    )
-
-    override fun getValue(owner: OWNR): String = getStringValue(owner)
-    override val createControl: Control get() = EmptyControl
-    override val editControl: Control = TextInput(name, title, editable = false)
-}
-
-/**
- * Ordinary text column. Editable <input type=text>
- */
-class TextCol<OWNR : Any, T>(
-        private val getStringValue: (OWNR) -> String,
-        override val name: String,
-        title: String = name.capitalize(),
-        controlFactory: (name: String, title: String) -> Control = TextInput
-) : Col<OWNR> {
-
-    constructor(
-            property: KProperty1<OWNR, T>,
-            title: String = property.name.capitalize(),
-            toString: (T) -> String = Any?::toString,
-            controlFactory: (name: String, title: String) -> Control = TextInput
-    ) : this(
-            { ownr -> toString(property.get(ownr)) }, property.name, title, controlFactory
-    )
-
-    override fun getValue(owner: OWNR): String = getStringValue(owner)
-    private val control: Control = controlFactory(name, title)
-    override val createControl: Control get() = control
-    override val editControl: Control get() = control
 }
