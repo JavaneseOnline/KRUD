@@ -20,7 +20,7 @@ private suspend fun <E : Any> captureEAndPatch(
     val (table, record) = tableAndRecord
     val updatedMap = table.toMap(record) + post.toStringMap()
     val updatedE = table.createFromMap(updatedMap)
-    table.save(updatedE)
+    table.update(updatedE)
 
     call.respondRedirect(listRoute.addressOf(env, table))
 }

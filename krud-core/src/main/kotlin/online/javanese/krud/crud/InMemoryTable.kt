@@ -24,14 +24,24 @@ class InMemoryTable<E : Any, ID>(
 
     override fun findAll(): List<E> = itemsRef.get()
     override fun findOne(id: ID): E? = itemsRef.get().singleOrNull { idOf(it) == id }
-    override fun save(e: E) {
+
+    override fun insert(e: E) {
+        itemsRef.updateAndGet { items ->
+            unmodifiableList(items + e)
+        }
+    }
+
+    override fun update(e: E) {
         val id = idOf(e)
         itemsRef.updateAndGet { items ->
-            val idx = items.indexOfFirst { idOf(it) == id }
-            val updated = if (idx < 0) items + e else ArrayList(items).also { it[idx] = e }
+            val updated = ArrayList(items)
+            val idx = updated.indexOfFirst { idOf(it) == id }
+            check(idx >= 0)
+            updated[idx] = e
             unmodifiableList(updated)
         }
     }
+
     override fun delete(id: ID) {
         itemsRef.updateAndGet { items ->
             unmodifiableList(items.filter { idOf(it) != id })

@@ -17,6 +17,6 @@ private suspend fun <E : Any> captureEAndInsert(
         listRoute: TablePageRoute
 ) {
     val new = table.createFromMap(post.toStringMap())
-    table.save(new)
+    table.insert(new)
     call.respondRedirect(listRoute.addressOf(env, table))
 }

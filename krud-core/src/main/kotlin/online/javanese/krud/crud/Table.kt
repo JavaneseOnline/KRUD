@@ -32,10 +32,16 @@ interface Table<E : Any, ID> {
     fun findOne(id: ID): E?
 
     /**
-     * Persist [E]
+     * Persist [E] as a new record.
      * @see createFromMap for details
      */
-    fun save(e: E)
+    fun insert(e: E)
+
+    /**
+     * Update [E], i. e. mutate existing record.
+     * @see createFromMap for details
+     */
+    fun update(e: E)
 
     /**
      * Delete [E]. Actually, I hope you'll just set deleted flag
