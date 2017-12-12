@@ -29,7 +29,6 @@ object KrudTestServer {
 
     /**
      * Starts test server.
-     * Required static dir address to be specified through CLI arguments.
      * After start, you should be able to see a working admin-panel
      * at http://localhost:8081/admin/.
      */
