@@ -10,7 +10,9 @@ import online.javanese.krud.NoFrontendDependencies
 interface Control {
 
     /**
-     * HTML `id` and `name`
+     * HTML `id` and `name`.
+     * Typically, this means `<input type="..." id="{id}" name="{name}" ... />`,
+     * but this is not guaranteed.
      */
     val id: String
 
@@ -37,7 +39,7 @@ interface Control {
     fun render(html: FlowContent, value: String, classes: String?)
 
     enum class Type {
-        Input, TextArea, Custom
+        Input, TextArea, CheckBox, Custom
     }
 }
 
@@ -95,6 +97,40 @@ class TextArea(
 }
 
 /**
+ * Input with `type=checkbox` for `Boolean` values.
+ *
+ * Shipped with hidden input which helps converting 'checked' state
+ * into a valid boolean value.
+ */
+class CheckBox(
+        override val id: String,
+        override val title: String
+) : Control {
+    override val type: Control.Type get() = Control.Type.CheckBox
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
+
+    override fun render(html: FlowContent, value: String, classes: String?) {
+        html.checkBoxInput(classes = classes) {
+            this@checkBoxInput.id = this@CheckBox.id
+            this@checkBoxInput.checked = value == "true"
+
+            // convert on/undefined to true/false
+            this@checkBoxInput.onChange = this@CheckBox.id + "_crutch.value = this.checked"
+        }
+        html.hiddenInput {
+            this@hiddenInput.id = this@CheckBox.id + "_crutch"
+            this@hiddenInput.name = this@CheckBox.id
+            this@hiddenInput.value = value
+        }
+    }
+
+    companion object : (String, String) -> Control {
+        override fun invoke(name: String, title: String): Control =
+                CheckBox(name, title)
+    }
+}
+
+/**
  * HTML TextArea which will be replaced
  * with CodeMirror editor on the client-side.
  */
@@ -118,7 +154,6 @@ class HtmlCodeMirror constructor(
     override fun render(html: FlowContent, value: String, classes: String?) {
 
         html.div(classes = "codemirror-html${if (classes == null) "" else ' ' + classes}") {
-            style = "padding-bottom: 16px"
 
             label("someClass") {
                 for_ = ""

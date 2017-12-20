@@ -332,28 +332,46 @@ class MaterialTemplate(
         when (control.type) {
             Control.Type.Input -> renderInput(control, value)
             Control.Type.TextArea -> renderTextArea(control, value)
-            Control.Type.Custom -> control.render(this, value, null)
-        }
+            Control.Type.CheckBox -> renderCheckBox(control, value)
+            Control.Type.Custom -> div {
+                style = "margin-bottom: 20px"
+
+                control.render(this, value, null)
+            }
+        }.also { }
     }
 
     private fun FlowContent.renderInput(control: Control, value: String) {
         div("mdl-textfield mdl-js-textfield mdl-textfield--floating-label") {
             control.render(this, value, "mdl-textfield__input")
-            label("mdl-textfield__label") {
-                for_ = control.id
-                +control.title
-            }
+            inputLabel(control)
         }
     }
 
     private fun FlowContent.renderTextArea(control: Control, value: String) {
         div("mdl-textfield mdl-js-textfield mdl-textfield--floating-label") {
             control.render(this, value, "mdl-textfield__input")
-            label("mdl-textfield__label") {
+            inputLabel(control)
+        }
+    }
+
+    private fun FlowContent.renderCheckBox(control: Control, value: String) {
+        div {
+            label("mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect") {
                 for_ = control.id
-                +control.title
+                style = "margin-bottom: 20px"
+
+                control.render(this, value, "mdl-checkbox__input")
+                span("mdl-checkbox__label") { +control.title }
             }
         }
+    }
+
+    private fun FlowContent.inputLabel(
+            control: Control
+    ) = label("mdl-textfield__label") {
+        for_ = control.id
+        +control.title
     }
 
 }

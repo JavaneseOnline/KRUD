@@ -1,5 +1,6 @@
 package online.javanese.krud.crud
 
+import online.javanese.krud.template.CheckBox
 import online.javanese.krud.template.Control
 import online.javanese.krud.template.EmptyControl
 import online.javanese.krud.template.TextInput
@@ -47,6 +48,27 @@ class TextCol<OWNR : Any, T>(
     )
 
     override fun getValue(owner: OWNR): String = getStringValue(owner)
+    private val control: Control = controlFactory(name, title)
+    override val createControl: Control get() = control
+    override val editControl: Control get() = control
+}
+
+class BooleanCol<OWNR : Any>(
+        private val getValue: (OWNR) -> Boolean,
+        override val name: String,
+        title: String = name.capitalize(),
+        controlFactory: (name: String, title: String) -> Control = CheckBox
+) : Column<OWNR> {
+
+    constructor(
+            property: KProperty1<OWNR, Boolean>,
+            title: String = property.name.capitalize(),
+            controlFactory: (name: String, title: String) -> Control = CheckBox
+    ) : this(
+            { ownr -> property.get(ownr) }, property.name, title, controlFactory
+    )
+
+    override fun getValue(owner: OWNR): String = getValue.invoke(owner).toString()
     private val control: Control = controlFactory(name, title)
     override val createControl: Control get() = control
     override val editControl: Control get() = control
