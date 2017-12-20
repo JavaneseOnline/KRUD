@@ -13,10 +13,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
 import online.javanese.krud.AdminPanel
 import online.javanese.krud.RoutedModule
-import online.javanese.krud.crud.Crud
-import online.javanese.krud.crud.IdCol
-import online.javanese.krud.crud.InMemoryTable
-import online.javanese.krud.crud.TextCol
+import online.javanese.krud.crud.*
 import online.javanese.krud.installAdmin
 import online.javanese.krud.krudStaticResources
 import online.javanese.krud.stat.*
@@ -46,14 +43,19 @@ object KrudTestServer {
                                         IdCol(Item::id),
                                         TextCol(Item::name),
                                         TextCol(Item::text, controlFactory = TextArea),
-                                        TextCol(Item::code, controlFactory = HtmlCodeMirror)
+                                        TextCol(Item::code, controlFactory = HtmlCodeMirror),
+                                        BooleanCol(Item::cool)
                                 ),
-                                listOf(Item(UUID(0L, 0L), "Whatever", "", "")),
+                                listOf(
+                                        Item(UUID(0L, 0L), "Cool item", "", "", true),
+                                        Item(UUID(0L, 1L), "OK item", "", "", false)
+                                ),
                                 { map -> Item(
                                         id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
                                         name = map["name"]!!, // ^ update             ^ create
                                         text = map["text"]!!,
-                                        code = map["code"]!!
+                                        code = map["code"]!!,
+                                        cool = map["cool"] == "true"
                                 ) },
                                 sortable = true
                         )
