@@ -39,7 +39,7 @@ interface Control {
     fun render(html: FlowContent, value: String, classes: String?)
 
     enum class Type {
-        Input, TextArea, CheckBox, Custom
+        Input, TextArea, CheckBox, Select, Custom
     }
 }
 
@@ -128,6 +128,47 @@ class CheckBox(
         override fun invoke(name: String, title: String): Control =
                 CheckBox(name, title)
     }
+}
+
+/**
+ * Renders HTML <select>, you know.
+ */
+class ComboBox(
+        override val id: String,
+        override val title: String,
+        private val names: List<String>,
+        private val titles: List<String>
+) : Control {
+
+    init {
+        if (names.size != titles.size)
+            throw IllegalArgumentException("Names: ${names.size} strings; titles: ${titles.size} strings. Must be equal.")
+    }
+
+    override val type: Control.Type get() = Control.Type.Select
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
+
+    override fun render(html: FlowContent, value: String, classes: String?) {
+        html.select(classes = classes) {
+            this@select.id = this@ComboBox.id
+            this@select.name = this@ComboBox.id
+
+            names.forEachIndexed { i, name ->
+                option {
+                    this@option.value = name
+                    if (value == name) selected = true
+
+                    +titles[i]
+                }
+            }
+        }
+    }
+
+    companion object : (String, String, List<String>, List<String>) -> Control {
+        override fun invoke(name: String, title: String, names: List<String>, titles: List<String>): Control =
+                ComboBox(name, title, names, titles)
+    }
+
 }
 
 /**

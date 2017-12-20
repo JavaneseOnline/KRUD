@@ -333,6 +333,7 @@ class MaterialTemplate(
             Control.Type.Input -> renderInput(control, value)
             Control.Type.TextArea -> renderTextArea(control, value)
             Control.Type.CheckBox -> renderCheckBox(control, value)
+            Control.Type.Select -> renderUndecoratedControl(control, value)
             Control.Type.Custom -> div {
                 style = "margin-bottom: 20px"
 
@@ -355,15 +356,26 @@ class MaterialTemplate(
         }
     }
 
-    private fun FlowContent.renderCheckBox(control: Control, value: String) {
-        div {
-            label("mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect") {
-                for_ = control.id
-                style = "margin-bottom: 20px"
+    private fun FlowContent.renderCheckBox(control: Control, value: String) = div {
+        label("mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect") {
+            for_ = control.id
+            style = "margin-bottom: 20px"
 
-                control.render(this, value, "mdl-checkbox__input")
-                span("mdl-checkbox__label") { +control.title }
-            }
+            control.render(this, value, "mdl-checkbox__input")
+            span("mdl-checkbox__label") { +control.title }
+        }
+    }
+
+    private fun FlowContent.renderUndecoratedControl(control: Control, value: String) = div {
+        style = "margin-bottom: 20px"
+
+        label {
+            for_ = control.id
+            +control.title
+        }
+
+        div {
+            control.render(this, value, null)
         }
     }
 
