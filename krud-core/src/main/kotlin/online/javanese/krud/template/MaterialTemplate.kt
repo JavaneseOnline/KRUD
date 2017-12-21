@@ -321,6 +321,7 @@ class MaterialTemplate(
                 configureList()
                 items.forEach { item ->
                     li("mdl-list__item") {
+                        style = "padding-top: 0; padding-bottom: 0" // MDL padding is too large
                         renderItem(this, item)
                     }
                 }

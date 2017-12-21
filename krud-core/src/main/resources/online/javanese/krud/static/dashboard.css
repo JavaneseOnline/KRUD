@@ -84,7 +84,7 @@
     margin-bottom: 0;
 }
 ul.sortable > li.placeholder {
-    height: 3.5em;
+    height: 3em;
     margin: 0;
     padding: 0;
     background-color: rgba(55, 71, 79, .1);
