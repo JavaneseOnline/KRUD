@@ -44,18 +44,20 @@ object KrudTestServer {
                                         TextCol(Item::name),
                                         TextCol(Item::text, controlFactory = TextArea),
                                         TextCol(Item::code, controlFactory = HtmlCodeMirror),
-                                        BooleanCol(Item::cool)
+                                        BooleanCol(Item::cool),
+                                        EnumeratedCol(Item::colour, EnumColAdapter<Colour>())
                                 ),
                                 listOf(
-                                        Item(UUID(0L, 0L), "Cool item", "", "", true),
-                                        Item(UUID(0L, 1L), "OK item", "", "", false)
+                                        Item(UUID(0L, 0L), "Cool item", "", "", true, Colour.Black),
+                                        Item(UUID(0L, 1L), "OK item", "", "", false, Colour.DarkerBlack)
                                 ),
                                 { map -> Item(
                                         id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
                                         name = map["name"]!!, // ^ update             ^ create
                                         text = map["text"]!!,
                                         code = map["code"]!!,
-                                        cool = map["cool"] == "true"
+                                        cool = map["cool"] == "true",
+                                        colour = Colour.valueOf(map["colour"]!!)
                                 ) },
                                 sortable = true
                         )
