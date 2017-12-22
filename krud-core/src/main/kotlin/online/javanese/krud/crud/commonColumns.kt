@@ -54,7 +54,7 @@ class TextCol<OWNR : Any, T>(
 }
 
 class BooleanCol<OWNR : Any>(
-        private val getValue: (OWNR) -> Boolean,
+        private val getStringValue: (OWNR) -> String,
         override val name: String,
         title: String = name.capitalize(),
         controlFactory: (name: String, title: String) -> Control = CheckBox
@@ -63,12 +63,13 @@ class BooleanCol<OWNR : Any>(
     constructor(
             property: KProperty1<OWNR, Boolean>,
             title: String = property.name.capitalize(),
+            toString: (Boolean) -> String = Any::toString,
             controlFactory: (name: String, title: String) -> Control = CheckBox
     ) : this(
-            { ownr -> property.get(ownr) }, property.name, title, controlFactory
+            { ownr -> toString(property.get(ownr)) }, property.name, title, controlFactory
     )
 
-    override fun getValue(owner: OWNR): String = getValue.invoke(owner).toString()
+    override fun getValue(owner: OWNR): String = getStringValue.invoke(owner)
     private val control: Control = controlFactory(name, title)
     override val createControl: Control get() = control
     override val editControl: Control get() = control

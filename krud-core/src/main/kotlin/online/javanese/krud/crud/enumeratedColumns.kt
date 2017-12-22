@@ -44,8 +44,8 @@ inline fun <reified E : Enum<E>> EnumColAdapter(
  */
 class EnumeratedCol<OWNR : Any, T, TID : Any>(
         private val getId: (OWNR) -> TID,
-        private val adapter: EnumeratedColAdapter<T, TID>,
         override val name: String,
+        private val adapter: EnumeratedColAdapter<T, TID>,
         private val title: String = name.capitalize(),
         private val idToString: (TID) -> String = Any::toString,
         private val controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = ComboBox
@@ -58,7 +58,7 @@ class EnumeratedCol<OWNR : Any, T, TID : Any>(
             idToString: (TID) -> String = Any::toString,
             controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = ComboBox
     ) : this(
-            property.getter, adapter, property.name, title, idToString, controlFactory
+            property.getter, property.name, adapter, title, idToString, controlFactory
     )
 
     override fun getValue(owner: OWNR): String = idToString(getId(owner))
