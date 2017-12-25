@@ -177,51 +177,6 @@ class ComboBox(
 }
 
 /**
- * HTML TextArea which will be replaced
- * with CodeMirror editor on the client-side.
- */
-class HtmlCodeMirror constructor(
-        override val id: String,
-        override val title: String
-) : Control {
-    override val type: Control.Type get() = Control.Type.Custom
-
-    override val frontendDependencies: FrontendDependencies = object : FrontendDependencies {
-        override fun requiredCss(staticPath: String): Set<String> = setOf(
-                "$staticPath/codemirror_ambiance.min.css"
-        )
-
-        override fun requiredJs(staticPath: String): Set<String> = setOf(
-                "$staticPath/codemirror_html.min.js",
-                "$staticPath/codemirror_html_init.js"
-        )
-    }
-
-    override fun render(html: FlowContent, value: String, classes: String?) {
-
-        html.div(classes = "codemirror-html${if (classes == null) "" else ' ' + classes}") {
-
-            label("someClass") {
-                for_ = ""
-                +this@HtmlCodeMirror.title
-            }
-
-            textArea {
-                this@textArea.id = this@HtmlCodeMirror.id
-                this@textArea.name = this@HtmlCodeMirror.id
-
-                +value
-            }
-        }
-    }
-
-    companion object : (String, String) -> Control {
-        override fun invoke(name: String, title: String): Control =
-                HtmlCodeMirror(name, title)
-    }
-}
-
-/**
  * No control. For fields which are not visible.
  */
 object EmptyControl : Control {
