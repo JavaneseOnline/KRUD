@@ -63,9 +63,14 @@ class TextInput(
         }
     }
 
-    companion object : (String, String) -> Control {
+    companion object Editable : (String, String) -> Control {
         override fun invoke(name: String, title: String): Control =
-                TextInput(name, title)
+                TextInput(name, title, true)
+    }
+
+    object ReadOnly : (String, String) -> Control {
+        override fun invoke(name: String, title: String): Control =
+                TextInput(name, title, false)
     }
 }
 
