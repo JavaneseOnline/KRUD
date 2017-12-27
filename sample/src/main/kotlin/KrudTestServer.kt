@@ -17,10 +17,10 @@ import online.javanese.krud.crud.*
 import online.javanese.krud.installAdmin
 import online.javanese.krud.krudStaticResources
 import online.javanese.krud.stat.*
-import online.javanese.krud.template.CodeMirror
-import online.javanese.krud.template.Html
+import online.javanese.krud.template.control.CodeMirror
+import online.javanese.krud.template.control.Html
 import online.javanese.krud.template.MaterialTemplate
-import online.javanese.krud.template.TextArea
+import online.javanese.krud.template.control.TextArea
 import java.util.*
 
 object KrudTestServer {
@@ -43,8 +43,8 @@ object KrudTestServer {
                                 listOf(
                                         IdCol(Item::id),
                                         TextCol(Item::name),
-                                        TextCol(Item::text, controlFactory = TextArea),
-                                        TextCol(Item::code, controlFactory = CodeMirror.Html),
+                                        TextCol(Item::text, createControlFactory = TextArea),
+                                        TextCol(Item::code, createControlFactory = CodeMirror.Html),
                                         BooleanCol(Item::cool),
                                         EnumeratedCol(Item::colour, EnumColAdapter<Colour>())
                                 ),
