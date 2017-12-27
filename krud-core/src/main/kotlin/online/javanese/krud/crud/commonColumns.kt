@@ -6,24 +6,24 @@ import kotlin.reflect.KProperty1
 /**
  * Primary key column. Read-only <input type=text>
  */
-class IdCol<OWNR : Any, ID>(
-        private val getStringValue: (OWNR) -> String,
-        override val name: String,
+fun <OWNR : Any, ID> IdCol(
+        getStringValue: (OWNR) -> String,
+        name: String,
         title: String = "ID"
-): Column<OWNR> {
+): TextCol<OWNR, ID> = TextCol(
+        getStringValue, name, title, { _, _ -> EmptyControl }, TextInput.ReadOnly
+)
 
-    constructor(
-            property: KProperty1<OWNR, ID>,
-            title: String = "ID",
-            toString: (ID) -> String = Any?::toString
-    ) : this(
-            { ownr -> toString(property.get(ownr)) }, property.name, title
-    )
-
-    override fun getValue(owner: OWNR): String = getStringValue(owner)
-    override val createControl: Control get() = EmptyControl
-    override val editControl: Control = TextInput(name, title, editable = false)
-}
+/**
+ * Primary key column from property.
+ */
+fun <OWNR : Any, ID> IdCol(
+        property: KProperty1<OWNR, ID>,
+        title: String = "ID",
+        toString: (ID) -> String = Any?::toString
+): TextCol<OWNR, ID> = TextCol(
+        { toString(property.get(it)) }, property.name, title, { _, _ -> EmptyControl }, TextInput.ReadOnly
+)
 
 /**
  * Ordinary text column. Editable <input type=text>
