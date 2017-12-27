@@ -1,7 +1,7 @@
 package online.javanese.krud.crud
 
-import online.javanese.krud.template.Control
-import online.javanese.krud.template.ComboBox
+import online.javanese.krud.template.control.Control
+import online.javanese.krud.template.control.ComboBox
 import java.util.*
 import kotlin.reflect.KProperty1
 
@@ -48,7 +48,8 @@ class EnumeratedCol<OWNR : Any, T, TID : Any>(
         private val adapter: EnumeratedColAdapter<T, TID>,
         private val title: String = name.capitalize(),
         private val idToString: (TID) -> String = Any::toString,
-        private val controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = ComboBox
+        private val createControlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = ComboBox,
+        private val editControlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = createControlFactory
 ) : Column<OWNR> {
 
     constructor(
@@ -62,11 +63,12 @@ class EnumeratedCol<OWNR : Any, T, TID : Any>(
     )
 
     override fun getValue(owner: OWNR): String = idToString(getId(owner))
-    override val createControl: Control get() = cc()
-    override val editControl: Control get() = cc()
+    override val createControl: Control get() = cc(createControlFactory)
+    override val editControl: Control get() = cc(editControlFactory)
 
-    private fun cc(): Control {
+    private fun cc(controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control): Control {
         val els = adapter.elements()
         return controlFactory(name, title, els.map { idToString(adapter.idOf(it)) }, els.map(adapter::titleOf))
     }
+
 }

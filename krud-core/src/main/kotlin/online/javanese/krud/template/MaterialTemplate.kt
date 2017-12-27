@@ -1,6 +1,7 @@
 package online.javanese.krud.template
 
 import kotlinx.html.*
+import online.javanese.krud.template.control.Control
 
 /**
  * Template implementation based on Material Design Lite

@@ -1,9 +1,6 @@
 package online.javanese.krud.crud
 
-import online.javanese.krud.template.CheckBox
-import online.javanese.krud.template.Control
-import online.javanese.krud.template.EmptyControl
-import online.javanese.krud.template.TextInput
+import online.javanese.krud.template.control.*
 import kotlin.reflect.KProperty1
 
 /**
@@ -35,42 +32,45 @@ class TextCol<OWNR : Any, T>(
         private val getStringValue: (OWNR) -> String,
         override val name: String,
         title: String = name.capitalize(),
-        controlFactory: (name: String, title: String) -> Control = TextInput
+        createControlFactory: (name: String, title: String) -> Control = TextInput.Editable,
+        editControlFactory: (name: String, title: String) -> Control = createControlFactory
 ) : Column<OWNR> {
 
     constructor(
             property: KProperty1<OWNR, T>,
             title: String = property.name.capitalize(),
             toString: (T) -> String = Any?::toString,
-            controlFactory: (name: String, title: String) -> Control = TextInput
+            createControlFactory: (name: String, title: String) -> Control = TextInput.Editable,
+            editControlFactory: (name: String, title: String) -> Control = createControlFactory
     ) : this(
-            { ownr -> toString(property.get(ownr)) }, property.name, title, controlFactory
+            { ownr -> toString(property.get(ownr)) }, property.name, title, createControlFactory, editControlFactory
     )
 
     override fun getValue(owner: OWNR): String = getStringValue(owner)
-    private val control: Control = controlFactory(name, title)
-    override val createControl: Control get() = control
-    override val editControl: Control get() = control
+
+    override val createControl: Control = createControlFactory(name, title)
+    override val editControl: Control = editControlFactory(name, title)
 }
 
 class BooleanCol<OWNR : Any>(
         private val getStringValue: (OWNR) -> String,
         override val name: String,
         title: String = name.capitalize(),
-        controlFactory: (name: String, title: String) -> Control = CheckBox
+        createControlFactory: (name: String, title: String) -> Control = CheckBox,
+        editControlFactory: (name: String, title: String) -> Control = createControlFactory
 ) : Column<OWNR> {
 
     constructor(
             property: KProperty1<OWNR, Boolean>,
             title: String = property.name.capitalize(),
             toString: (Boolean) -> String = Any::toString,
-            controlFactory: (name: String, title: String) -> Control = CheckBox
+            createControlFactory: (name: String, title: String) -> Control = CheckBox,
+            editControlFactory: (name: String, title: String) -> Control = createControlFactory
     ) : this(
-            { ownr -> toString(property.get(ownr)) }, property.name, title, controlFactory
+            { ownr -> toString(property.get(ownr)) }, property.name, title, createControlFactory, editControlFactory
     )
 
     override fun getValue(owner: OWNR): String = getStringValue.invoke(owner)
-    private val control: Control = controlFactory(name, title)
-    override val createControl: Control get() = control
-    override val editControl: Control get() = control
+    override val createControl: Control = createControlFactory(name, title)
+    override val editControl: Control = editControlFactory(name, title)
 }

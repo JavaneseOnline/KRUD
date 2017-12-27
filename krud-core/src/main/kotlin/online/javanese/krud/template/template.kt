@@ -5,6 +5,7 @@ import kotlinx.html.HTML
 import online.javanese.krud.CompositeFrontendDependencies
 import online.javanese.krud.FrontendDependencies
 import online.javanese.krud.NoFrontendDependencies
+import online.javanese.krud.template.control.Control
 
 typealias AdminTemplate = (
         root: HTML,

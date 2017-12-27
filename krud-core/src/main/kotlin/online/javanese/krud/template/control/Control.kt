@@ -1,4 +1,4 @@
-package online.javanese.krud.template
+package online.javanese.krud.template.control
 
 import kotlinx.html.*
 import online.javanese.krud.FrontendDependencies
@@ -40,37 +40,6 @@ interface Control {
 
     enum class Type {
         Input, TextArea, CheckBox, Select, Custom
-    }
-}
-
-/**
- * A plain HTML Input tag.
- */
-class TextInput(
-        override val id: String,
-        override val title: String,
-        private val editable: Boolean = true
-) : Control {
-    override val type: Control.Type get() = Control.Type.Input
-    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
-
-    override fun render(html: FlowContent, value: String, classes: String?) {
-        html.input(type = InputType.text, classes = classes) {
-            this@input.name = this@TextInput.id
-            this@input.id = this@TextInput.id
-            this@input.readonly = !this@TextInput.editable
-            this@input.value = value
-        }
-    }
-
-    companion object Editable : (String, String) -> Control {
-        override fun invoke(name: String, title: String): Control =
-                TextInput(name, title, true)
-    }
-
-    object ReadOnly : (String, String) -> Control {
-        override fun invoke(name: String, title: String): Control =
-                TextInput(name, title, false)
     }
 }
 

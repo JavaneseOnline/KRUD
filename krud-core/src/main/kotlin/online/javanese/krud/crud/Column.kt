@@ -1,6 +1,6 @@
 package online.javanese.krud.crud
 
-import online.javanese.krud.template.Control
+import online.javanese.krud.template.control.Control
 
 /**
  * Represents a table column.

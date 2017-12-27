@@ -1,4 +1,4 @@
-package online.javanese.krud.template
+package online.javanese.krud.template.control
 
 import kotlinx.html.*
 import online.javanese.krud.FrontendDependencies
