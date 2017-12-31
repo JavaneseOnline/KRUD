@@ -1,16 +1,24 @@
 package online.javanese.krud.stat
 
 import io.ktor.application.ApplicationCall
+import io.ktor.html.respondHtml
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.uri
 import io.ktor.request.userAgent
+import io.ktor.response.respondText
+import io.ktor.response.respondWrite
 import kotlinx.html.*
 import online.javanese.krud.HttpRequest
 import online.javanese.krud.Module
 import online.javanese.krud.WebEnv
 import online.javanese.krud.WsRequest
 import online.javanese.krud.template.Content
+import online.javanese.krud.template.Link
 import java.time.LocalDateTime
+import java.util.Collections.unmodifiableList
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -21,7 +29,43 @@ class HitStat(
 
     override val name: String get() = "Hits"
 
-    suspend override fun summary(env: WebEnv): Content {
+    override suspend fun summary(env: WebEnv): Content =
+            statOverview()
+
+    override suspend fun http(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
+        if (httpRequest.method != HttpMethod.Get) {
+            return call.respondText("Not found", status = HttpStatusCode.NotFound)
+        }
+
+        if (httpRequest.pathSegments.isEmpty()) {
+            val stats = statOverview()
+
+            // index
+            return call.respondHtml {
+                env.template(this, "Hit stats", listOf(stats, Content.LinkList("Export", listOf(Link("${env.routePrefix}/stats.csv", "CSV")))))
+            }
+        }
+
+        if (httpRequest.pathSegments.size == 1 && httpRequest.pathSegments[0] == "stats.csv") {
+            val recs = statTable.getRecords()
+            return call.respondWrite(ContentType.Text.Plain) {
+                recs.forEach {
+                    write(it.time.toString())
+                    write(",\t")
+                    write(it.remoteAddress)
+                    write(",\t")
+                    write(it.requestUri)
+                    write(",\t")
+                    write(it.referrer)
+                    write(",\t")
+                    write(it.userAgentStr)
+                    write(",\n")
+                }
+            }
+        }
+    }
+
+    private suspend fun statOverview() : Content.Card {
         val now = LocalDateTime.now()
 
         val dayAgo = now.minusDays(1)
@@ -64,12 +108,8 @@ class HitStat(
         }
     }
 
-    suspend override fun http(env: WebEnv, call: ApplicationCall, httpRequest: HttpRequest) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    suspend override fun webSocket(routePrefix: String, request: WsRequest) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override suspend fun webSocket(routePrefix: String, request: WsRequest) {
+        throw UnsupportedOperationException()
     }
 
     suspend fun trackVisit(call: ApplicationCall) {
@@ -96,6 +136,7 @@ interface StatTable {
     suspend fun add(remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
     suspend fun getHitsAfter(date: LocalDateTime): Int
     suspend fun getHostsAfter(date: LocalDateTime): Int
+    suspend fun getRecords(): List<StatRecord>
 }
 
 data class UserAgent(
@@ -157,6 +198,9 @@ class InMemoryStatTable(
         }
         return set.size
     }
+
+    override suspend fun getRecords(): List<StatRecord> =
+            unmodifiableList(records)
 
     private fun <T : Any> canonical(canonicalMap: ConcurrentMap<T, T>, s: T): T =
             canonicalMap.putIfAbsent(s, s) ?: s
