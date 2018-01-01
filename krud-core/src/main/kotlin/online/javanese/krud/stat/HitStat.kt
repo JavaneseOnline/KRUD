@@ -5,6 +5,7 @@ import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.ApplicationRequest
 import io.ktor.request.header
 import io.ktor.request.uri
 import io.ktor.request.userAgent
@@ -24,7 +25,8 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 class HitStat(
-        private val statTable: StatTable
+        private val statTable: StatTable,
+        private val remoteAddr: (ApplicationRequest) -> String = { it.header("X-Forwarded-For")!! }
 ) : Module {
 
     override val name: String get() = "Hits"
@@ -114,7 +116,7 @@ class HitStat(
 
     suspend fun trackVisit(call: ApplicationCall) {
         statTable.add(
-                remoteAddress = call.request.local.remoteHost,
+                remoteAddress = remoteAddr(call.request),
                 requestUri = call.request.uri,
                 referrer = call.request.header("Referer") ?: "",
                 userAgentStr = call.request.userAgent() ?: ""
