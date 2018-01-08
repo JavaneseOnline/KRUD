@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class HitStat(
         private val statTable: StatTable,
-        private val remoteAddr: (ApplicationRequest) -> String = { it.header("X-Forwarded-For")!! }
+        private val remoteAddr: (ApplicationRequest) -> String = { it.header("X-Forwarded-For") ?: it.local.remoteHost }
 ) : Module {
 
     override val name: String get() = "Hits"
