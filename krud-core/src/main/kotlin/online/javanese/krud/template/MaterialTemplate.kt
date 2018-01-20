@@ -7,8 +7,8 @@ import online.javanese.krud.template.control.Control
  * Template implementation based on Material Design Lite
  */
 class MaterialTemplate(
-        private val homePath: String,
-        private val staticPath: String
+        private val homePath: String, // ends with '/'
+        private val staticPath: String // no trailing '/'
 ) : AdminTemplate {
 
     private val flatButtonClasses = "mdl-button mdl-js-button mdl-js-ripple-effect"
@@ -60,11 +60,11 @@ class MaterialTemplate(
                     header("demo-header mdl-layout__header mdl-color--grey-100 mdl-color-text--grey-600") {
                         div("mdl-layout__header-row") {
 
-                            //                            if (showHome) {
+                            //if (showHome) {
                             span("mdl-layout-title") {
-                                a("$homePath/") { +"Home" }
+                                a(homePath) { +"Home" }
                             }
-//                            }
+                            //}
 
                             /*div("mdl-layout-spacer")
 
