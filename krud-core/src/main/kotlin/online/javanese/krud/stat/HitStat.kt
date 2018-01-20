@@ -27,7 +27,9 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class HitStat(
         private val statTable: StatTable,
-        private val remoteAddr: (ApplicationRequest) -> String = { it.header("X-Forwarded-For")?.split(", ")?.first() ?: it.local.remoteHost }
+        private val remoteAddr: (ApplicationRequest) -> String = GetRemoteAddr,
+        private val isBot: (userAgent: String) -> Boolean = IsBot,
+        private val ignoreRequestUri: (String) -> Boolean = IgnoreRequestUri
 ) : Module {
 
     override val name: String get() = "Hits"
@@ -45,25 +47,18 @@ class HitStat(
 
             // index
             return call.respondHtml {
-                env.template(this, "Hit stats", listOf(stats, Content.LinkList("Export", listOf(Link("${env.routePrefix}/stats.csv", "CSV")))))
+                env.template(this, "Hit stats", listOf(stats, Content.LinkList("Export", listOf(
+                        Link("${env.routePrefix}/hits.csv", "Hits CSV"),
+                        Link("${env.routePrefix}/counted-hits.csv", "Counted hits CSV")
+                ))))
             }
         }
 
-        if (httpRequest.pathSegments.size == 1 && httpRequest.pathSegments[0] == "stats.csv") {
-            val recs = statTable.getRecords()
-            return call.respondWrite(ContentType.Text.Plain) {
-                recs.forEach {
-                    write(it.time.toString())
-                    write(",\t")
-                    write(it.remoteAddress)
-                    write(",\t")
-                    write(it.requestUri)
-                    write(",\t")
-                    write(it.referrer)
-                    write(",\t")
-                    write(it.userAgentStr)
-                    write(",\n")
-                }
+        if (httpRequest.pathSegments.size == 1) {
+            return when (httpRequest.pathSegments[0]) {
+                "hits.csv" -> renderHits(call, false)
+                "counted-hits.csv" -> renderHits(call, true)
+                else -> call.respondText("Not found", status = HttpStatusCode.NotFound)
             }
         }
     }
@@ -111,22 +106,64 @@ class HitStat(
         }
     }
 
+    private suspend fun renderHits(call: ApplicationCall, countedOnly: Boolean) {
+        val showAll = !countedOnly
+        val recs = statTable.getRecords()
+        return call.respondWrite(ContentType.Text.Plain) {
+            recs.forEach {
+                if (showAll || it.counted) {
+                    write(it.time.toString())
+                    write(",\t")
+                    write(it.remoteAddress)
+                    write(",\t")
+                    write(it.requestUri)
+                    write(",\t")
+                    write(it.referrer)
+                    write(",\t")
+                    write(it.userAgentStr)
+                    write(",\n")
+                }
+            }
+        }
+    }
+
     override suspend fun webSocket(routePrefix: String, request: WsRequest) {
         throw UnsupportedOperationException()
     }
 
     suspend fun trackVisit(call: ApplicationCall) {
+        val requestUri = call.request.uri
+        val userAgent = call.request.userAgent() ?: ""
+        val counted = !ignoreRequestUri(requestUri) && !isBot(userAgent)
         statTable.add(
+                counted = counted,
                 remoteAddress = remoteAddr(call.request),
-                requestUri = call.request.uri,
+                requestUri = requestUri,
                 referrer = call.request.header("Referer") ?: "",
-                userAgentStr = call.request.userAgent() ?: ""
+                userAgentStr = userAgent
         )
+    }
+
+    companion object {
+        val GetRemoteAddr = { req: ApplicationRequest ->
+            req.header("X-Forwarded-For")?.split(", ")?.first() ?: req.local.remoteHost
+        }
+
+        private val notALetter = Regex("\\W")
+
+        val IsBot = { userAgent: String ->
+            userAgent.split(notALetter).any { it.toLowerCase().endsWith("bot") }
+        }
+
+        val IgnoreRequestUri = { uri: String ->
+            uri.endsWith(".js") || uri.endsWith(".css")
+        }
     }
 
 }
 
 interface StatRecord {
+    val counted: Boolean
     val time: LocalDateTime
     val remoteAddress: String
     val requestUri: String
@@ -136,7 +173,7 @@ interface StatRecord {
 }
 
 interface StatTable {
-    suspend fun add(remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
+    suspend fun add(counted: Boolean, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
     suspend fun getHitsAfter(date: LocalDateTime): Int
     suspend fun getHostsAfter(date: LocalDateTime): Int
     suspend fun getRecords(): List<StatRecord>
@@ -149,6 +186,7 @@ data class UserAgent(
 )
 
 class InMemoryStatRecord(
+        override val counted: Boolean,
         override val time: LocalDateTime,
         override val remoteAddress: String,
         override val requestUri: String,
@@ -158,8 +196,7 @@ class InMemoryStatRecord(
 ) : StatRecord
 
 class InMemoryStatTable(
-        private val parseUa: (String) -> UserAgent,
-        private val ignoreRequestUri: (String) -> Boolean = { false }
+        private val parseUa: (String) -> UserAgent
 ) : StatTable {
 
     private val records = CopyOnWriteArrayList<InMemoryStatRecord>()
@@ -169,16 +206,14 @@ class InMemoryStatTable(
     private val userAgentStrs = ConcurrentHashMap<String, String>()
     private val userAgents = ConcurrentHashMap<UserAgent, UserAgent>()
 
-    override suspend fun add(remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String) {
-        if (ignoreRequestUri(requestUri)) return
-
+    override suspend fun add(counted: Boolean, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String) {
         val now = LocalDateTime.now()
         val cRemoteAddress = canonical(remoteAddresses, remoteAddress)
         val cRequestUri = canonical(requestUris, requestUri)
         val cReferrer = canonical(referrers, referrer)
         val cUserAgentStr = canonical(userAgentStrs, userAgentStr)
         val userAgent = canonical(userAgents, parseUa(userAgentStr))
-        records.add(InMemoryStatRecord(now, cRemoteAddress, cRequestUri, cReferrer, cUserAgentStr, userAgent))
+        records.add(InMemoryStatRecord(counted, now, cRemoteAddress, cRequestUri, cReferrer, cUserAgentStr, userAgent))
     }
 
     override suspend fun getHitsAfter(date: LocalDateTime): Int {
