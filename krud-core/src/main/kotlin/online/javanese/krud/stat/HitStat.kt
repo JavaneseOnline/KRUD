@@ -114,6 +114,8 @@ class HitStat(
                 if (showAll || it.counted) {
                     write(it.time.toString())
                     write(",\t")
+                    write(it.statusCode.value.toString())
+                    write(",\t")
                     write(it.remoteAddress)
                     write(",\t")
                     write(it.requestUri)
@@ -134,9 +136,11 @@ class HitStat(
     suspend fun trackVisit(call: ApplicationCall) {
         val requestUri = call.request.uri
         val userAgent = call.request.userAgent() ?: ""
-        val counted = !ignoreRequestUri(requestUri) && !isBot(userAgent)
+        val statusCode = call.response.status()!!
+        val counted = statusCode == HttpStatusCode.OK && !ignoreRequestUri(requestUri) && !isBot(userAgent)
         statTable.add(
                 counted = counted,
+                statusCode = statusCode,
                 remoteAddress = remoteAddr(call.request),
                 requestUri = requestUri,
                 referrer = call.request.header("Referer") ?: "",
@@ -164,6 +168,7 @@ class HitStat(
 
 interface StatRecord {
     val counted: Boolean
+    val statusCode: HttpStatusCode
     val time: LocalDateTime
     val remoteAddress: String
     val requestUri: String
@@ -173,7 +178,7 @@ interface StatRecord {
 }
 
 interface StatTable {
-    suspend fun add(counted: Boolean, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
+    suspend fun add(counted: Boolean, statusCode: HttpStatusCode, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
     suspend fun getHitsAfter(date: LocalDateTime): Int
     suspend fun getHostsAfter(date: LocalDateTime): Int
     suspend fun getRecords(): List<StatRecord>
@@ -187,6 +192,7 @@ data class UserAgent(
 
 class InMemoryStatRecord(
         override val counted: Boolean,
+        override val statusCode: HttpStatusCode,
         override val time: LocalDateTime,
         override val remoteAddress: String,
         override val requestUri: String,
@@ -206,14 +212,14 @@ class InMemoryStatTable(
     private val userAgentStrs = ConcurrentHashMap<String, String>()
     private val userAgents = ConcurrentHashMap<UserAgent, UserAgent>()
 
-    override suspend fun add(counted: Boolean, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String) {
+    override suspend fun add(counted: Boolean, statusCode: HttpStatusCode, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String) {
         val now = LocalDateTime.now()
         val cRemoteAddress = canonical(remoteAddresses, remoteAddress)
         val cRequestUri = canonical(requestUris, requestUri)
         val cReferrer = canonical(referrers, referrer)
         val cUserAgentStr = canonical(userAgentStrs, userAgentStr)
         val userAgent = canonical(userAgents, parseUa(userAgentStr))
-        records.add(InMemoryStatRecord(counted, now, cRemoteAddress, cRequestUri, cReferrer, cUserAgentStr, userAgent))
+        records.add(InMemoryStatRecord(counted, statusCode, now, cRemoteAddress, cRequestUri, cReferrer, cUserAgentStr, userAgent))
     }
 
     override suspend fun getHitsAfter(date: LocalDateTime): Int {
