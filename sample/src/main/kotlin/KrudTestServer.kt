@@ -33,7 +33,9 @@ object KrudTestServer {
     @JvmStatic
     fun main(args: Array<String>) {
         val noUa = UserAgent("", "", "")
-        val stat = HitStat(InMemoryStatTable({ noUa }, ignoreRequestUri = { it.endsWith(".js") || it.endsWith(".css") }))
+        val stat = HitStat(
+                InMemoryStatTable({ noUa })
+        )
         val admin = AdminPanel(
                 "/admin",
                 MaterialTemplate("/admin", "/krud-static"),
