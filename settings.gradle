@@ -1,4 +1,5 @@
 rootProject.name = 'krud'
 include 'krud-core'
+include 'krud-kwery'
 include 'sample'
 
