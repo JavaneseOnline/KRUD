@@ -1,7 +1,7 @@
 package online.javanese.krud
 
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import io.ktor.util.toMap
 
-fun ValuesMap.toStringMap() =
+fun StringValues.toStringMap() =
         toMap().mapValues { (_, v) -> v.single() }

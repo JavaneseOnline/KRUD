@@ -2,7 +2,7 @@ package online.javanese.krud.crud
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpMethod
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.WebEnv
 
 /**
@@ -42,7 +42,7 @@ class TableActionRoute(
  * Action that can be performed on a table, e. g. list, create new record, etc.
  */
 typealias TableEndpoint = suspend (
-        env: WebEnv, call: ApplicationCall, table: Table<*, *>, query: ValuesMap, post: ValuesMap
+        env: WebEnv, call: ApplicationCall, table: Table<*, *>, query: StringValues, post: StringValues
 ) -> Unit
 
 /**

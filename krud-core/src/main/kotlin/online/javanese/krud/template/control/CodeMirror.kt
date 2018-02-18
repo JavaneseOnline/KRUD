@@ -30,7 +30,7 @@ class CodeMirror constructor(
         html.div(classes = "codemirror-$modeSlug${if (classes == null) "" else ' ' + classes}") {
 
             label("someClass") {
-                for_ = ""
+                htmlFor = ""
                 +this@CodeMirror.title
             }
 

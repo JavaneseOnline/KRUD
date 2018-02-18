@@ -2,7 +2,7 @@ package online.javanese.krud.crud.action
 
 import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.WebEnv
 import online.javanese.krud.crud.RecordActionRoute
 import online.javanese.krud.crud.RecordEndpoint
@@ -17,7 +17,7 @@ internal fun Edit(
     captureTAndReturnForm(env, call, tableAndRecord, post, deleteRoute, reviewRoute)
 }
 private suspend fun <T : Any> captureTAndReturnForm(
-        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<T, *>, post: ValuesMap,
+        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<T, *>, post: StringValues,
         deleteRoute: RecordActionRoute, reviewRoute: RecordActionRoute
 ) {
     val (table, record) = tableAndRecord

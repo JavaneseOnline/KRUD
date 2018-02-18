@@ -2,7 +2,7 @@ package online.javanese.krud
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpMethod
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
@@ -14,8 +14,8 @@ import kotlinx.coroutines.experimental.channels.SendChannel
 class HttpRequest(
         val method: HttpMethod,
         val pathSegments: List<String>,
-        val query: ValuesMap,
-        val post: ValuesMap
+        val query: StringValues,
+        val post: StringValues
 )
 
 /**
@@ -24,7 +24,7 @@ class HttpRequest(
 class WsRequest(
         val call: ApplicationCall,
         val pathSegments: List<String>,
-        val query: ValuesMap,
+        val query: StringValues,
         val incoming: ReceiveChannel<Frame>,
         val outgoing: SendChannel<Frame>
 )

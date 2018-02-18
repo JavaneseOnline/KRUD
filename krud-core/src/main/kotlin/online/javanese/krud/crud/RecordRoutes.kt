@@ -2,7 +2,7 @@ package online.javanese.krud.crud
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpMethod
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.WebEnv
 
 /**
@@ -47,7 +47,7 @@ class TableAndRecord<T : Any, ID>(
 }
 
 typealias RecordEndpoint = suspend (
-        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<*, *>, query: ValuesMap, post: ValuesMap
+        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<*, *>, query: StringValues, post: StringValues
 ) -> Unit
 
 /**

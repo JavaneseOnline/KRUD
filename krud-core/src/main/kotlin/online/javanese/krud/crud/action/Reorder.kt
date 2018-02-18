@@ -4,7 +4,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.crud.Sort
 import online.javanese.krud.crud.Table
 import online.javanese.krud.crud.TableEndpoint
@@ -12,7 +12,7 @@ import online.javanese.krud.crud.TableEndpoint
 internal fun Reorder(): TableEndpoint = { env, call, table, _, post ->
     captureIdAndReorder(call, table, post)
 }
-private suspend fun <ID> captureIdAndReorder(call: ApplicationCall, table: Table<*, ID>, post: ValuesMap) {
+private suspend fun <ID> captureIdAndReorder(call: ApplicationCall, table: Table<*, ID>, post: StringValues) {
     val sort = table.sort as? Sort.Explicit
             ?: return call.respondText("This table cannot be reordered.", ContentType.Text.Plain, HttpStatusCode.BadRequest)
 

@@ -142,10 +142,10 @@ class MaterialTemplate(
 
                 }
 
-                script(src = "http://zeptojs.com/zepto.min.js")
-                script(src = "//cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.js")
-                script(src = "$staticPath/zepto-dnd.min.js")
-                script(src = "//code.getmdl.io/1.1.3/material.min.js")
+                script(src = "http://zeptojs.com/zepto.min.js") {}
+                script(src = "//cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.3/dialog-polyfill.min.js") {}
+                script(src = "$staticPath/zepto-dnd.min.js") {}
+                script(src = "//code.getmdl.io/1.1.3/material.min.js") {}
 
                 script {
                     unsafe {
@@ -170,7 +170,7 @@ class MaterialTemplate(
                 contents.forEach { content ->
                     content.dependencies.requiredJs(staticPath).forEach {
                         if (scripts.add(it))
-                            script(src = it)
+                            script(src = it) {}
                     }
                 }
 
@@ -360,7 +360,7 @@ class MaterialTemplate(
 
     private fun FlowContent.renderCheckBox(control: Control, value: String) = div {
         label("mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect") {
-            for_ = control.id
+            htmlFor = control.id
             style = "margin-bottom: 20px"
 
             control.render(this, value, "mdl-checkbox__input")
@@ -372,7 +372,7 @@ class MaterialTemplate(
         style = "margin-bottom: 20px"
 
         label {
-            for_ = control.id
+            htmlFor = control.id
             +control.title
         }
 
@@ -384,7 +384,7 @@ class MaterialTemplate(
     private fun FlowContent.inputLabel(
             control: Control
     ) = label("mdl-textfield__label") {
-        for_ = control.id
+        htmlFor = control.id
         +control.title
     }
 

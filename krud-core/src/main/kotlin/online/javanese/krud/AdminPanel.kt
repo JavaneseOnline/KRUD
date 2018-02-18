@@ -6,7 +6,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
@@ -60,8 +60,8 @@ class AdminPanel(
             method: HttpMethod,
             modulePath: String,
             pathSegments: List<String>,
-            query: ValuesMap,
-            post: ValuesMap
+            query: StringValues,
+            post: StringValues
     ) {
         val routedModule = modules.firstOrNull { it.route == modulePath }
                 ?: return call.respondText("No such module.", ContentType.Text.Plain, HttpStatusCode.NotFound)
@@ -77,7 +77,7 @@ class AdminPanel(
             call: ApplicationCall,
             modulePath: String,
             pathSegments: List<String>,
-            query: ValuesMap,
+            query: StringValues,
             incoming: ReceiveChannel<Frame>,
             outgoing: SendChannel<Frame>
     ) {

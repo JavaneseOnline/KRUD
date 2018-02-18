@@ -6,7 +6,7 @@ import io.ktor.request.receiveParameters
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import io.ktor.websocket.webSocket
 
 fun Route.installAdmin(admin: AdminPanel) {
@@ -21,7 +21,7 @@ fun Route.installAdmin(admin: AdminPanel) {
                 call.parameters["module"]!!,
                 call.parameters.getAll("tail")!!,
                 call.parameters,
-                ValuesMap.Empty
+                StringValues.Empty
         )
     }
 

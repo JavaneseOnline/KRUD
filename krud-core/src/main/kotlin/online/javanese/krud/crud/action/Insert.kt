@@ -2,7 +2,7 @@ package online.javanese.krud.crud.action
 
 import io.ktor.application.ApplicationCall
 import io.ktor.response.respondRedirect
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.WebEnv
 import online.javanese.krud.crud.Table
 import online.javanese.krud.crud.TableEndpoint
@@ -13,7 +13,7 @@ internal fun Insert(listRoute: TablePageRoute): TableEndpoint = { env, call, tab
     captureEAndInsert(env, call, table, post, listRoute)
 }
 private suspend fun <E : Any> captureEAndInsert(
-        env: WebEnv, call: ApplicationCall, table: Table<E, *>, post: ValuesMap,
+        env: WebEnv, call: ApplicationCall, table: Table<E, *>, post: StringValues,
         listRoute: TablePageRoute
 ) {
     val new = table.createFromMap(post.toStringMap())

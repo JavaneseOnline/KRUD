@@ -2,7 +2,7 @@ package online.javanese.krud.crud.action
 
 import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import io.ktor.util.toMap
 import online.javanese.krud.WebEnv
 import online.javanese.krud.crud.RecordActionRoute
@@ -17,7 +17,7 @@ internal fun Review(
     captureEAndReturnPreUpdateTable(env, call, tableAndRecord, post, continueEditingRoute, updateRoute)
 }
 private suspend fun <E : Any> captureEAndReturnPreUpdateTable(
-        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<E, *>, map: ValuesMap,
+        env: WebEnv, call: ApplicationCall, tableAndRecord: TableAndRecord<E, *>, map: StringValues,
         continueEditingRoute: RecordActionRoute, updateRoute: RecordActionRoute
 ) {
     val (table, _) = tableAndRecord

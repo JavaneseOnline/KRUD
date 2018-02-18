@@ -6,7 +6,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
-import io.ktor.util.ValuesMap
+import io.ktor.util.StringValues
 import online.javanese.krud.*
 import online.javanese.krud.crud.action.*
 import online.javanese.krud.template.Content
@@ -102,7 +102,7 @@ class Crud(
 
     private suspend fun <T : Any> captureTFindRecordAndPerform(
             env: WebEnv, call: ApplicationCall, table: Table<T, *>, recordIdStr: String, action: RecordEndpoint,
-            query: ValuesMap, post: ValuesMap
+            query: StringValues, post: StringValues
     ) = findOneAndRun(call, table, recordIdStr) { record ->
         action(env, call, TableAndRecord(table, record), query, post)
     }
