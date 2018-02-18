@@ -136,7 +136,7 @@ class HitStat(
     suspend fun trackVisit(call: ApplicationCall) {
         val requestUri = call.request.uri
         val userAgent = call.request.userAgent() ?: ""
-        val statusCode = call.response.status()!!
+        val statusCode = call.response.status() ?: WtfStatusCode
         val counted = statusCode == HttpStatusCode.OK && !ignoreRequestUri(requestUri) && !isBot(userAgent)
         statTable.add(
                 counted = counted,
@@ -149,6 +149,8 @@ class HitStat(
     }
 
     companion object {
+        val WtfStatusCode = HttpStatusCode(-1, "statusCode was null")
+
         val GetRemoteAddr = { req: ApplicationRequest ->
             req.header("X-Forwarded-For")?.split(", ")?.first() ?: req.local.remoteHost
         }
