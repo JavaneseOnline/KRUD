@@ -6,10 +6,11 @@ import online.javanese.krud.template.control.Control
  * Represents a table column.
  */
 interface Column<OWNR : Any> {
+
     /**
-     * Returns value which user will see and, if acceptable, edit
+     * Returns value(s) which user will see and, if acceptable, edit
      */
-    fun getValue(owner: OWNR): String
+    fun getValues(owner: OWNR): List<String>
 
     /**
      * Human-readable label
@@ -25,4 +26,5 @@ interface Column<OWNR : Any> {
      * UI control which will be user in Edit form
      */
     val editControl: Control
+
 }

@@ -25,7 +25,7 @@ class CodeMirror constructor(
         )
     }
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
 
         html.div(classes = "codemirror-$modeSlug${if (classes == null) "" else ' ' + classes}") {
 
@@ -38,7 +38,7 @@ class CodeMirror constructor(
                 this@textArea.id = this@CodeMirror.id
                 this@textArea.name = this@CodeMirror.id
 
-                +value
+                values.singleOrNull()?.let { +it }
             }
         }
     }

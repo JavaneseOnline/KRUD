@@ -22,7 +22,7 @@ fun <E : Any> KweryTable(
         columns: Set<KwColumn<E, *>> = table.defaultColumns,
         sort: Sort<Uuid> = Sort.NoneOrImplicit,
         transformColumn: (KwColumn<E, *>) -> KrColumn<E> = TransformKweryColumn(),
-        fallbackSource: ValueFactory.Source<*> = ValueFactory.EmptySource
+        fallback: Map<String, *> = emptyMap<String, Nothing>()
 ): KweryTable<E, Uuid> = KweryTable<E, Uuid>(
         route,
         table,
@@ -34,5 +34,5 @@ fun <E : Any> KweryTable(
         columns,
         sort,
         transformColumn,
-        fallbackSource
+        fallback
 )

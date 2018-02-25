@@ -3,6 +3,7 @@ package online.javanese.krud.template.control
 import kotlinx.html.*
 import online.javanese.krud.FrontendDependencies
 import online.javanese.krud.NoFrontendDependencies
+import kotlin.math.min
 
 /**
  * Represents a UI control.
@@ -34,9 +35,9 @@ interface Control {
 
 
     /**
-     * Render this Control on [html] with [value] and [classes].
+     * Render this Control on [html] with [values] and [classes].
      */
-    fun render(html: FlowContent, value: String, classes: String?)
+    fun render(html: FlowContent, values: List<String>, classes: String?)
 
     enum class Type {
         Input, TextArea, CheckBox, Select, Custom
@@ -54,13 +55,13 @@ class TextArea(
     override val type: Control.Type get() = Control.Type.TextArea
     override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
         html.textArea(classes = classes) {
             this@textArea.name = this@TextArea.id
             this@textArea.id = this@TextArea.id
             this@textArea.readonly = !this@TextArea.editable
 
-            +value
+            values.singleOrNull()?.let { +it }
         }
     }
 
@@ -83,10 +84,10 @@ class CheckBox(
     override val type: Control.Type get() = Control.Type.CheckBox
     override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
         html.checkBoxInput(classes = classes) {
             this@checkBoxInput.id = this@CheckBox.id
-            this@checkBoxInput.checked = value == "true"
+            this@checkBoxInput.checked = values.firstOrNull() == "true"
 
             // convert on/undefined to true/false
             this@checkBoxInput.onChange = this@CheckBox.id + "_crutch.value = this.checked"
@@ -94,7 +95,7 @@ class CheckBox(
         html.hiddenInput {
             this@hiddenInput.id = this@CheckBox.id + "_crutch"
             this@hiddenInput.name = this@CheckBox.id
-            this@hiddenInput.value = value
+            values.singleOrNull()?.let { this@hiddenInput.value = it }
         }
     }
 
@@ -122,7 +123,7 @@ class ComboBox(
     override val type: Control.Type get() = Control.Type.Select
     override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
         html.select(classes = classes) {
             this@select.id = this@ComboBox.id
             this@select.name = this@ComboBox.id
@@ -130,7 +131,7 @@ class ComboBox(
             names.forEachIndexed { i, name ->
                 option {
                     this@option.value = name
-                    if (value == name) selected = true
+                    if (values.singleOrNull() == name) selected = true
 
                     +titles[i]
                 }
@@ -146,6 +147,50 @@ class ComboBox(
 }
 
 /**
+ * Renders HTML <select> with nonzero size
+ */
+class MultiComboBox(
+        override val id: String,
+        override val title: String,
+        private val names: List<String>,
+        private val titles: List<String>,
+        private val maxSize: Int = 6
+) : Control {
+
+    init {
+        if (names.size != titles.size)
+            throw IllegalArgumentException("Names: ${names.size} strings; titles: ${titles.size} strings. Must be equal.")
+    }
+
+    override val type: Control.Type get() = Control.Type.Select
+    override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
+
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
+        html.select(classes = classes) {
+            this@select.id = this@MultiComboBox.id
+            this@select.name = this@MultiComboBox.id
+            multiple = true
+            size = min(names.size, maxSize).toString()
+
+            names.forEachIndexed { i, name ->
+                option {
+                    this@option.value = name
+                    if (name in values) selected = true
+
+                    +titles[i]
+                }
+            }
+        }
+    }
+
+    companion object : (String, String, List<String>, List<String>) -> Control {
+        override fun invoke(name: String, title: String, names: List<String>, titles: List<String>): Control =
+                MultiComboBox(name, title, names, titles)
+    }
+
+}
+
+/**
  * No control. For fields which are not visible.
  */
 object EmptyControl : Control {
@@ -154,7 +199,7 @@ object EmptyControl : Control {
     override val title: String get() = "Won't be rendered"
     override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
         // no-op
     }
 }

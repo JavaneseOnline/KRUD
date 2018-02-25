@@ -62,7 +62,7 @@ sealed class Content {
     class Form(
             val title: String,
             val mode: Mode,
-            val controlsAndValues: List<Pair<Control, String>>,
+            val controlsAndValues: List<Pair<Control, List<String>>>,
             val submitAction: String
     ) : Content() {
 
@@ -82,7 +82,7 @@ sealed class Content {
      */
     class Review(
             val title: String,
-            val namesTitlesValues: List<Triple<String, String, String>>,
+            val namesTitlesValues: List<Triple<@ParameterName("names") String, @ParameterName("titles") String, @ParameterName("values") List<String>>>,
             val editAction: String,
             val updateAction: String
     ) : Content() {

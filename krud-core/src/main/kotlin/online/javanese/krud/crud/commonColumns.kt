@@ -46,7 +46,7 @@ class TextCol<OWNR : Any, T>(
             { ownr -> toString(property.get(ownr)) }, property.name, title, createControlFactory, editControlFactory
     )
 
-    override fun getValue(owner: OWNR): String = getStringValue(owner)
+    override fun getValues(owner: OWNR): List<String> = listOf(getStringValue(owner))
 
     override val createControl: Control = createControlFactory(name, title)
     override val editControl: Control = editControlFactory(name, title)
@@ -70,7 +70,7 @@ class BooleanCol<OWNR : Any>(
             { ownr -> toString(property.get(ownr)) }, property.name, title, createControlFactory, editControlFactory
     )
 
-    override fun getValue(owner: OWNR): String = getStringValue.invoke(owner)
+    override fun getValues(owner: OWNR): List<String> = listOf(getStringValue.invoke(owner))
     override val createControl: Control = createControlFactory(name, title)
     override val editControl: Control = editControlFactory(name, title)
 }

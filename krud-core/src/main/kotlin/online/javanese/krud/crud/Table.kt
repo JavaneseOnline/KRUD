@@ -1,5 +1,8 @@
 package online.javanese.krud.crud
 
+import io.ktor.util.StringValues
+import io.ktor.util.StringValuesImpl
+
 /**
  * Represents a table of [E] objects with [ID] primary key.
  */
@@ -33,13 +36,13 @@ interface Table<E : Any, ID> {
 
     /**
      * Persist [E] as a new record.
-     * @see createFromMap for details
+     * @see createFrom for details
      */
     fun insert(e: E)
 
     /**
      * Update [E], i. e. mutate existing record.
-     * @see createFromMap for details
+     * @see createFrom for details
      */
     fun update(e: E)
 
@@ -79,11 +82,11 @@ interface Table<E : Any, ID> {
      * Create new [E] from map.
      * If contains no ID mapping, then it's for insertion. It's for update otherwise.
      */
-    fun createFromMap(map: Map<String, String>): E
+    fun createFrom(map: StringValues): E
 }
 
-internal fun <E : Any> Table<E, *>.toMap(e: E) =
-        cols.associateBy({ it.name }, { it.getValue(e) })
+internal fun <E : Any> Table<E, *>.toMap(e: E): StringValues =
+        StringValuesImpl(values = cols.associateBy({ it.name }, { it.getValues(e) }))
 
 /**
  * Either this table can be sorted by user or not.

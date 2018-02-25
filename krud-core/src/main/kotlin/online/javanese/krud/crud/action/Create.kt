@@ -17,7 +17,7 @@ internal fun Create(createRoute: TablePageRoute): TableEndpoint = { env, call, t
                         Content.Form.Mode.Create,
                         table.cols.asSequence()
                                 .map(Column<*>::createControl)
-                                .filterNotNull().map { it to "" }
+                                .filterNotNull().map { it to emptyList<String>() }
                                 .toList(),
                         createRoute.addressOf(env, table)
                 ))

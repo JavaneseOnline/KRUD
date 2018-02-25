@@ -23,6 +23,7 @@ import online.javanese.krud.template.MaterialTemplate
 import online.javanese.krud.template.control.TextArea
 import java.util.*
 
+
 object KrudTestServer {
 
     /**
@@ -48,11 +49,12 @@ object KrudTestServer {
                                         TextCol(Item::text, createControlFactory = TextArea),
                                         TextCol(Item::code, createControlFactory = CodeMirror.Html),
                                         BooleanCol(Item::cool),
-                                        EnumeratedCol(Item::colour, EnumColAdapter<Colour>())
+                                        EnumeratedCol(Item::colour, EnumColAdapter<Colour>()),
+                                        MultiEnumeratedCol(Item::bestWith, EnumColAdapter<Colour>())
                                 ),
                                 listOf(
-                                        Item(UUID(0L, 0L), "Cool item", "", "", true, Colour.Black),
-                                        Item(UUID(0L, 1L), "OK item", "", "", false, Colour.DarkerBlack)
+                                        Item(UUID(0L, 0L), "Cool item", "", "", true, Colour.Black, emptySet()),
+                                        Item(UUID(0L, 1L), "OK item", "", "", false, Colour.DarkerBlack, EnumSet.of(Colour.LighterBlack, Colour.Black))
                                 ),
                                 { map -> Item(
                                         id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
@@ -60,7 +62,8 @@ object KrudTestServer {
                                         text = map["text"]!!,
                                         code = map["code"]!!,
                                         cool = map["cool"] == "true",
-                                        colour = Colour.valueOf(map["colour"]!!)
+                                        colour = Colour.valueOf(map["colour"]!!),
+                                        bestWith = (map.getAll("bestWith") ?: emptySet<String>()).mapTo(EnumSet.noneOf(Colour::class.java), Colour::valueOf)
                                 ) },
                                 sortable = true
                         )

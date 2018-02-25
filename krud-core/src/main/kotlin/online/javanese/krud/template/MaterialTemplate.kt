@@ -217,8 +217,8 @@ class MaterialTemplate(
     private fun FlowContent.renderForm(content: Content.Form) {
         blockWithTitleAndForm(content.title) {
 
-            content.controlsAndValues.forEach { (ctl, value) ->
-                renderControl(ctl, value)
+            content.controlsAndValues.forEach { (ctl, values) ->
+                renderControl(ctl, values)
             }
 
             div {
@@ -246,16 +246,16 @@ class MaterialTemplate(
         blockWithTitleAndForm(content.title) {
             table("mdl-data-table mdl-js-data-table") {
                 tbody {
-                    content.namesTitlesValues.forEach { (name, title, value) ->
+                    content.namesTitlesValues.forEach { (name, title, values) ->
                         tr {
                             td("mdl-data-table__cell--non-numeric") {
                                 +title
                             }
                             td("mdl-data-table__cell--non-numeric") {
-                                +value
+                                +values.joinToString()
 
-                                input(type = InputType.hidden, name = name) {
-                                    this@input.value = value
+                                values.forEach {
+                                    input(type = InputType.hidden, name = name) { value = it }
                                 }
                             }
                         }
@@ -330,45 +330,45 @@ class MaterialTemplate(
         }
     }
 
-    private fun FlowContent.renderControl(control: Control, value: String) {
+    private fun FlowContent.renderControl(control: Control, values: List<String>) {
         when (control.type) {
-            Control.Type.Input -> renderInput(control, value)
-            Control.Type.TextArea -> renderTextArea(control, value)
-            Control.Type.CheckBox -> renderCheckBox(control, value)
-            Control.Type.Select -> renderUndecoratedControl(control, value)
+            Control.Type.Input -> renderInput(control, values)
+            Control.Type.TextArea -> renderTextArea(control, values)
+            Control.Type.CheckBox -> renderCheckBox(control, values)
+            Control.Type.Select -> renderUndecoratedControl(control, values)
             Control.Type.Custom -> div {
                 style = "margin-bottom: 20px"
 
-                control.render(this, value, null)
+                control.render(this, values, null)
             }
         }.also { }
     }
 
-    private fun FlowContent.renderInput(control: Control, value: String) {
+    private fun FlowContent.renderInput(control: Control, values: List<String>) {
         div("mdl-textfield mdl-js-textfield mdl-textfield--floating-label") {
-            control.render(this, value, "mdl-textfield__input")
+            control.render(this, values, "mdl-textfield__input")
             inputLabel(control)
         }
     }
 
-    private fun FlowContent.renderTextArea(control: Control, value: String) {
+    private fun FlowContent.renderTextArea(control: Control, values: List<String>) {
         div("mdl-textfield mdl-js-textfield mdl-textfield--floating-label") {
-            control.render(this, value, "mdl-textfield__input")
+            control.render(this, values, "mdl-textfield__input")
             inputLabel(control)
         }
     }
 
-    private fun FlowContent.renderCheckBox(control: Control, value: String) = div {
+    private fun FlowContent.renderCheckBox(control: Control, values: List<String>) = div {
         label("mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect") {
             htmlFor = control.id
             style = "margin-bottom: 20px"
 
-            control.render(this, value, "mdl-checkbox__input")
+            control.render(this, values, "mdl-checkbox__input")
             span("mdl-checkbox__label") { +control.title }
         }
     }
 
-    private fun FlowContent.renderUndecoratedControl(control: Control, value: String) = div {
+    private fun FlowContent.renderUndecoratedControl(control: Control, values: List<String>) = div {
         style = "margin-bottom: 20px"
 
         label {
@@ -377,7 +377,7 @@ class MaterialTemplate(
         }
 
         div {
-            control.render(this, value, null)
+            control.render(this, values, null)
         }
     }
 

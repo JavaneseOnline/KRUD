@@ -9,7 +9,8 @@ import online.javanese.krud.crud.RecordEndpoint
 import online.javanese.krud.crud.TableAndRecord
 import online.javanese.krud.crud.toMap
 import online.javanese.krud.template.Content
-import online.javanese.krud.toStringMap
+import online.javanese.krud.updatedWith
+
 
 internal fun Edit(
         deleteRoute: RecordActionRoute, reviewRoute: RecordActionRoute
@@ -21,7 +22,7 @@ private suspend fun <T : Any> captureTAndReturnForm(
         deleteRoute: RecordActionRoute, reviewRoute: RecordActionRoute
 ) {
     val (table, record) = tableAndRecord
-    val updated = table.toMap(record) + post.toStringMap()
+    val updated = table.toMap(record) updatedWith post
     val recordTitle = table.getTitle(record)
 
     call.respondHtml {
@@ -31,7 +32,9 @@ private suspend fun <T : Any> captureTAndReturnForm(
                 listOf(Content.Form(
                         recordTitle,
                         Content.Form.Mode.Edit(deleteRoute.addressOf(env, table, record)),
-                        table.cols.mapNotNull { col -> updated[col.name]?.let { value -> col.editControl to value } },
+                        table.cols.mapNotNull {
+                            col -> updated.getAll(col.name)?.let { values -> col.editControl to values }
+                        },
                         reviewRoute.addressOf(env, table, record)
                 ))
         )

@@ -4,6 +4,7 @@ import com.github.andrewoma.kwery.mapper.Converter
 import com.github.andrewoma.kwery.mapper.EnumByNameConverter
 import com.github.andrewoma.kwery.mapper.standardConverters
 import com.github.andrewoma.kwery.mapper.timeConverters
+import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -13,9 +14,10 @@ import java.util.*
 import java.util.Collections.unmodifiableMap
 import kotlin.NoSuchElementException
 
+
 object KweryTypes {
 
-    fun getTypeForConverter(converter: Converter<*>): Class<*> {
+    fun getTypeForConverter(converter: Converter<*>): Type {
         if (converter is EnumByNameConverter<*>) {
             val from = converter.from
             val typeField = from.javaClass.getDeclaredField("\$type")
@@ -24,6 +26,11 @@ object KweryTypes {
         }
 
         converterToType[converter]?.let { return it }
+
+        try {
+            return converter.javaClass.getDeclaredMethod("getType")(converter) as Type
+        } catch (ignored: ReflectiveOperationException) {
+        }
 
         throw NoSuchElementException("Cannot find type of converter $converter.")
     }
@@ -34,7 +41,7 @@ object KweryTypes {
                     ?: throw NoSuchElementException("No converter for type $type.")
 
     private val converterToType: Map<Converter<*>, Class<*>>
-    private val typeToConverter: Map<Class<*>, (String) -> Any>
+    private val typeToConverter: Map<Class<*>, (List<String>) -> Any>
 
     init {
         val kweryConverters =
@@ -44,15 +51,15 @@ object KweryTypes {
                 .map { (k, v) -> k to v }
                 .associateByTo(HashMap(kweryConverters.size), { it.second }, { it.first }))
 
-        val BooleanConverter: (String) -> Boolean = java.lang.Boolean::parseBoolean
-        val ByteConverter: (String) -> Byte = java.lang.Byte::parseByte
-        val ShortConverter: (String) -> Short = java.lang.Short::parseShort
-        val IntConverter: (String) -> Int = java.lang.Integer::parseInt
-        val LongConverter: (String) -> Long = java.lang.Long::parseLong
-        val FloatConverter: (String) -> Float = java.lang.Float::parseFloat
-        val DoubleConverter: (String) -> Double = java.lang.Double::parseDouble
+        val BooleanConverter: (List<String>) -> Boolean = { java.lang.Boolean.parseBoolean(it.single()) }
+        val ByteConverter: (List<String>) -> Byte = { java.lang.Byte.parseByte(it.single()) }
+        val ShortConverter: (List<String>) -> Short = { java.lang.Short.parseShort(it.single()) }
+        val IntConverter: (List<String>) -> Int = { java.lang.Integer.parseInt(it.single()) }
+        val LongConverter: (List<String>) -> Long = { java.lang.Long.parseLong(it.single()) }
+        val FloatConverter: (List<String>) -> Float = { java.lang.Float.parseFloat(it.single()) }
+        val DoubleConverter: (List<String>) -> Double = { java.lang.Double.parseDouble(it.single()) }
 
-        typeToConverter = unmodifiableMap(mapOf(
+        typeToConverter = unmodifiableMap(mapOf<Class<*>, (List<String>) -> Any>(
                 // standardConverters
                 java.lang.Boolean::class.java to BooleanConverter,
                 java.lang.Boolean.TYPE to BooleanConverter,
@@ -68,18 +75,18 @@ object KweryTypes {
                 java.lang.Float.TYPE to FloatConverter,
                 java.lang.Double::class.java to DoubleConverter,
                 java.lang.Double.TYPE to DoubleConverter,
-                BigDecimal::class.java to ::BigDecimal,
-                String::class.java to { s: String -> s },
+                BigDecimal::class.java to { it: List<String> -> BigDecimal(it.single()) },
+                String::class.java to List<String>::single,
                 // ByteArray, Timestamp, Time, Date ignored
 
                 // timeConverters
-                LocalDateTime::class.java to LocalDateTime::parse,
-                LocalDate::class.java to LocalDate::parse,
-                LocalTime::class.java to LocalTime::parse,
-                Instant::class.java to Instant::parse,
+                LocalDateTime::class.java to { it: List<String> -> LocalDateTime.parse(it.single()) },
+                LocalDate::class.java to { it: List<String> -> LocalDate.parse(it.single()) },
+                LocalTime::class.java to { it: List<String> -> LocalTime.parse(it.single()) },
+                Instant::class.java to { it: List<String> -> Instant.parse(it.single()) },
                 // several converters ignored
 
-                Uuid::class.java to UUID::fromString
+                Uuid::class.java to { it: List<String> -> Uuid.fromString(it.single()) }
         ))
     }
 

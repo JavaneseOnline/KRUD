@@ -1,5 +1,6 @@
 package online.javanese.krud.crud
 
+import io.ktor.util.StringValues
 import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicReference
 
@@ -14,7 +15,7 @@ class InMemoryTable<E : Any, ID>(
         private val stringToId: (String) -> ID,
         cols: List<Column<E>>,
         items: List<E>,
-        private val fromMap: (Map<String, String>) -> E,
+        private val fromMap: (StringValues) -> E,
         sortable: Boolean
 ) : Table<E, ID> {
 
@@ -73,6 +74,6 @@ class InMemoryTable<E : Any, ID>(
 
     override fun stringToId(s: String): ID = stringToId.invoke(s)
     override val cols: List<Column<E>> = cols.toList()
-    override fun createFromMap(map: Map<String, String>): E = fromMap(map)
+    override fun createFrom(map: StringValues): E = fromMap(map)
 
 }

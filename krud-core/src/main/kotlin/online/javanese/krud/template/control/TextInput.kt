@@ -18,12 +18,12 @@ class TextInput(
     override val type: Control.Type get() = Control.Type.Input
     override val frontendDependencies: FrontendDependencies get() = NoFrontendDependencies
 
-    override fun render(html: FlowContent, value: String, classes: String?) {
+    override fun render(html: FlowContent, values: List<String>, classes: String?) {
         html.input(type = InputType.text, classes = classes) {
             this@input.name = this@TextInput.id
             this@input.id = this@TextInput.id
             this@input.readonly = !this@TextInput.editable
-            this@input.value = value
+            values.firstOrNull()?.let { this@input.value = it }
         }
     }
 

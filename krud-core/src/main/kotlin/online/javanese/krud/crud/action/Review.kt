@@ -9,7 +9,6 @@ import online.javanese.krud.crud.RecordActionRoute
 import online.javanese.krud.crud.RecordEndpoint
 import online.javanese.krud.crud.TableAndRecord
 import online.javanese.krud.template.Content
-import online.javanese.krud.toStringMap
 
 internal fun Review(
         continueEditingRoute: RecordActionRoute, updateRoute: RecordActionRoute
@@ -22,7 +21,7 @@ private suspend fun <E : Any> captureEAndReturnPreUpdateTable(
 ) {
     val (table, _) = tableAndRecord
     // TODO: calculate diff
-    val newRecord = table.createFromMap(map.toStringMap())
+    val newRecord = table.createFrom(map)
     call.respondHtml {
         env.template(
                 this,
@@ -31,7 +30,7 @@ private suspend fun <E : Any> captureEAndReturnPreUpdateTable(
                         table.getTitle(newRecord),
                         map.toMap().mapNotNull { (key, values) ->
                             if (values.isEmpty()) null // skip values which were not passed
-                            else Triple(key, table.cols.single { it.name == key }.editControl.title, values.single())
+                            else Triple(key, table.cols.single { it.name == key }.editControl.title, values)
                         },
                         continueEditingRoute.addressOf(env, table, newRecord),
                         updateRoute.addressOf(env, table, newRecord)

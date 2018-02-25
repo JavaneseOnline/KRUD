@@ -2,6 +2,7 @@ package online.javanese.krud.crud
 
 import online.javanese.krud.template.control.Control
 import online.javanese.krud.template.control.ComboBox
+import online.javanese.krud.template.control.MultiComboBox
 import java.util.*
 import kotlin.reflect.KProperty1
 
@@ -62,13 +63,47 @@ class EnumeratedCol<OWNR : Any, T, TID : Any>(
             property.getter, property.name, adapter, title, idToString, controlFactory
     )
 
-    override fun getValue(owner: OWNR): String = idToString(getId(owner))
-    override val createControl: Control get() = cc(createControlFactory)
-    override val editControl: Control get() = cc(editControlFactory)
+    override fun getValues(owner: OWNR): List<String> = listOf(idToString(getId(owner)))
+    override val createControl: Control get() = adapter.cc(name, title, idToString, createControlFactory)
+    override val editControl: Control get() = adapter.cc(name, title, idToString, editControlFactory)
 
-    private fun cc(controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control): Control {
-        val els = adapter.elements()
-        return controlFactory(name, title, els.map { idToString(adapter.idOf(it)) }, els.map(adapter::titleOf))
-    }
+}
 
+/**
+ * Allows multiple selection of provided values.
+ * @param T related entity type
+ * @param TID T's primary key / ID
+ */
+class MultiEnumeratedCol<OWNR : Any, T, TID : Any>(
+        private val getIds: (OWNR) -> Collection<TID>,
+        override val name: String,
+        private val adapter: EnumeratedColAdapter<T, TID>,
+        private val title: String = name.capitalize(),
+        private val idToString: (TID) -> String = Any::toString,
+        private val createControlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = MultiComboBox,
+        private val editControlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = createControlFactory
+) : Column<OWNR> {
+
+    constructor(
+            property: KProperty1<OWNR, Collection<TID>>,
+            adapter: EnumeratedColAdapter<T, TID>,
+            title: String = property.name.capitalize(),
+            idToString: (TID) -> String = Any::toString,
+            controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control = MultiComboBox
+    ) : this(
+            property.getter, property.name, adapter, title, idToString, controlFactory
+    )
+
+    override fun getValues(owner: OWNR): List<String> = getIds(owner).map(idToString)
+    override val createControl: Control get() = adapter.cc(name, title, idToString, createControlFactory)
+    override val editControl: Control get() = adapter.cc(name, title, idToString, editControlFactory)
+
+}
+
+private fun <T, TID : Any> EnumeratedColAdapter<T, TID>.cc(
+        name: String, title: String, idToString: (TID) -> String,
+        controlFactory: (name: String, title: String, names: List<String>, titles: List<String>) -> Control
+): Control {
+    val els = elements()
+    return controlFactory(name, title, els.map { idToString(idOf(it)) }, els.map(::titleOf))
 }

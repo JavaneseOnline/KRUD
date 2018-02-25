@@ -6,5 +6,6 @@ class Item(
         val text: String,
         val code: String,
         val cool: Boolean,
-        val colour: Colour
+        val colour: Colour,
+        val bestWith: Set<Colour>
 )

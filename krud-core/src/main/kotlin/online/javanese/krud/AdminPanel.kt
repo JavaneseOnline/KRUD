@@ -69,7 +69,8 @@ class AdminPanel(
         tryOrReturnFail(call) {
             routedModule.module.http(
                     routedModule.webEnv,
-                    call, HttpRequest(method, pathSegments, query = query, post = post))
+                    call, HttpRequest(method, pathSegments, query = query, post = post)
+            )
         }
     }
 
@@ -100,6 +101,7 @@ class AdminPanel(
         try {
             code()
         } catch (t: Throwable) {
+            t.printStackTrace()
             call.respondHtml {
                 moduleTemplate(this, "Module failed", listOf(renderFail(t)))
             }
