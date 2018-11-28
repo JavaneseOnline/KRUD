@@ -67,16 +67,17 @@ class HitStat(
         val now = LocalDateTime.now()
 
         val dayAgo = now.minusDays(1)
-        val hostsIn1d = statTable.getHostsAfter(dayAgo).toString()
-        val hitsIn1d = statTable.getHitsAfter(dayAgo).toString()
-
         val weekAgo = now.minusDays(7)
-        val hostsIn7d = statTable.getHostsAfter(weekAgo).toString()
-        val hitsIn7d = statTable.getHitsAfter(weekAgo).toString()
-
         val monthAgo = now.minusDays(30)
-        val hostsIn30d = statTable.getHostsAfter(monthAgo).toString()
-        val hitsIn30d = statTable.getHitsAfter(monthAgo).toString()
+
+        val hitsAndHosts = arrayOf(dayAgo, weekAgo, monthAgo).map { period ->
+            arrayOf(
+                    statTable.getHostsAfter(period, false),
+                    statTable.getHostsAfter(period, true),
+                    statTable.getHitsAfter(period, false),
+                    statTable.getHitsAfter(period, true)
+            )
+        }
 
         return Content.Card("Stats") {
             table("mdl-data-table mdl-js-data-table") {
@@ -89,17 +90,13 @@ class HitStat(
                     }
                 }
                 tbody {
-                    tr {
-                        td("mdl-data-table__cell--non-numeric") { +"Hosts" }
-                        td { +hostsIn1d }
-                        td { +hostsIn7d }
-                        td { +hostsIn30d }
-                    }
-                    tr {
-                        td("mdl-data-table__cell--non-numeric") { +"Hits" }
-                        td { +hitsIn1d }
-                        td { +hitsIn7d }
-                        td { +hitsIn30d }
+                    arrayOf("Hosts", "Counted hosts", "Hits", "Counted hits").forEachIndexed { index, title ->
+                        tr {
+                            td("mdl-data-table__cell--non-numeric") { +title }
+                            hitsAndHosts.forEach { hitsHosts ->
+                                td { +hitsHosts[index].toString() }
+                            }
+                        }
                     }
                 }
             }
@@ -181,8 +178,8 @@ interface StatRecord {
 
 interface StatTable {
     suspend fun add(counted: Boolean, statusCode: HttpStatusCode, remoteAddress: String, requestUri: String, referrer: String, userAgentStr: String)
-    suspend fun getHitsAfter(date: LocalDateTime): Int
-    suspend fun getHostsAfter(date: LocalDateTime): Int
+    suspend fun getHitsAfter(date: LocalDateTime, countedOnly: Boolean): Int
+    suspend fun getHostsAfter(date: LocalDateTime, countedOnly: Boolean): Int
     suspend fun getRecords(): List<StatRecord>
 }
 
@@ -224,23 +221,30 @@ class InMemoryStatTable(
         records.add(InMemoryStatRecord(counted, statusCode, now, cRemoteAddress, cRequestUri, cReferrer, cUserAgentStr, userAgent))
     }
 
-    override suspend fun getHitsAfter(date: LocalDateTime): Int {
+    override suspend fun getHitsAfter(date: LocalDateTime, countedOnly: Boolean): Int {
         val itr = records.listIterator(records.size)
         var cnt = 0
         while (itr.hasPrevious()) {
-            if (itr.previous().time > date) cnt++
-            else break
+            val rec = itr.previous()
+            if (rec.time > date) {
+                if (!countedOnly || rec.counted)
+                    cnt++
+            } else {
+                break
+            }
         }
         return cnt
     }
 
-    override suspend fun getHostsAfter(date: LocalDateTime): Int {
+    override suspend fun getHostsAfter(date: LocalDateTime, countedOnly: Boolean): Int {
         val set = HashSet<String>()
         val itr = records.listIterator(records.size)
         while (itr.hasPrevious()) {
             val rec = itr.previous()
             if (rec.time <= date) break
-            set.add(rec.remoteAddress)
+            if (!countedOnly || rec.counted) {
+                set.add(rec.remoteAddress)
+            }
         }
         return set.size
     }
