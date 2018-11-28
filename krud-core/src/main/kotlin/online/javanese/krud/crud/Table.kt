@@ -1,5 +1,6 @@
 package online.javanese.krud.crud
 
+import io.ktor.util.InternalAPI
 import io.ktor.util.StringValues
 import io.ktor.util.StringValuesImpl
 
@@ -85,6 +86,7 @@ interface Table<E : Any, ID> {
     fun createFrom(map: StringValues): E
 }
 
+@UseExperimental(InternalAPI::class)
 internal fun <E : Any> Table<E, *>.toMap(e: E): StringValues =
         StringValuesImpl(values = cols.associateBy({ it.name }, { it.getValues(e) }))
 

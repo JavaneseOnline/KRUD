@@ -10,7 +10,7 @@ import io.ktor.request.header
 import io.ktor.request.uri
 import io.ktor.request.userAgent
 import io.ktor.response.respondText
-import io.ktor.response.respondWrite
+import io.ktor.response.respondTextWriter
 import kotlinx.html.*
 import online.javanese.krud.HttpRequest
 import online.javanese.krud.Module
@@ -109,7 +109,7 @@ class HitStat(
     private suspend fun renderHits(call: ApplicationCall, countedOnly: Boolean) {
         val showAll = !countedOnly
         val recs = statTable.getRecords()
-        return call.respondWrite(ContentType.Text.Plain) {
+        return call.respondTextWriter(ContentType.Text.Plain) {
             recs.forEach {
                 if (showAll || it.counted) {
                     write(it.time.toString())

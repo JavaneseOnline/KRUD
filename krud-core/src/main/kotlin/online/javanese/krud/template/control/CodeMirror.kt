@@ -27,7 +27,7 @@ class CodeMirror constructor(
 
     override fun render(html: FlowContent, values: List<String>, classes: String?) {
 
-        html.div(classes = "codemirror-$modeSlug${if (classes == null) "" else ' ' + classes}") {
+        html.div(classes = "codemirror-$modeSlug${if (classes == null) "" else " $classes"}") {
 
             label("someClass") {
                 htmlFor = ""

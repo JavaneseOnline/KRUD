@@ -1,8 +1,8 @@
+@file:JvmName("KrudTestServer")
+
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.auth.UserIdPrincipal
-import io.ktor.auth.authentication
-import io.ktor.auth.basicAuthentication
+import io.ktor.auth.*
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -24,83 +24,81 @@ import online.javanese.krud.template.control.TextArea
 import java.util.*
 
 
-object KrudTestServer {
+/**
+ * Starts test server.
+ * After start, you should be able to see a working admin-panel
+ * at http://localhost:8081/admin/.
+ */
+fun main(args: Array<String>) {
+    val noUa = UserAgent("", "", "")
+    val stat = HitStat(
+            InMemoryStatTable { noUa }
+    )
+    val admin = AdminPanel(
+            "/admin",
+            MaterialTemplate("/admin", "/krud-static"),
+            RoutedModule("crud", Crud(
+                    InMemoryTable(
+                            "item", "Item", Item::id, Item::name, UUID::fromString,
+                            listOf(
+                                    IdCol(Item::id),
+                                    TextCol(Item::name),
+                                    TextCol(Item::text, createControlFactory = TextArea),
+                                    TextCol(Item::code, createControlFactory = CodeMirror.Html),
+                                    BooleanCol(Item::cool),
+                                    EnumeratedCol(Item::colour, EnumColAdapter<Colour>()),
+                                    MultiEnumeratedCol(Item::bestWith, EnumColAdapter<Colour>())
+                            ),
+                            listOf(
+                                    Item(UUID(0L, 0L), "Cool item", "", "", true, Colour.Black, emptySet()),
+                                    Item(UUID(0L, 1L), "OK item", "", "", false, Colour.DarkerBlack, EnumSet.of(Colour.LighterBlack, Colour.Black))
+                            ),
+                            { map -> Item(
+                                    id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
+                                    name = map["name"]!!, // ^ update             ^ create
+                                    text = map["text"]!!,
+                                    code = map["code"]!!,
+                                    cool = map["cool"] == "true",
+                                    colour = Colour.valueOf(map["colour"]!!),
+                                    bestWith = (map.getAll("bestWith") ?: emptySet<String>()).mapTo(EnumSet.noneOf(Colour::class.java), Colour::valueOf)
+                            ) },
+                            sortable = true
+                    )
+            )),
+            RoutedModule("hwStat", HardwareStat()),
+            RoutedModule("stat", stat)
+    )
 
-    /**
-     * Starts test server.
-     * After start, you should be able to see a working admin-panel
-     * at http://localhost:8081/admin/.
-     */
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val noUa = UserAgent("", "", "")
-        val stat = HitStat(
-                InMemoryStatTable({ noUa })
-        )
-        val admin = AdminPanel(
-                "/admin",
-                MaterialTemplate("/admin", "/krud-static"),
-                RoutedModule("crud", Crud(
-                        InMemoryTable(
-                                "item", "Item", Item::id, Item::name, UUID::fromString,
-                                listOf(
-                                        IdCol(Item::id),
-                                        TextCol(Item::name),
-                                        TextCol(Item::text, createControlFactory = TextArea),
-                                        TextCol(Item::code, createControlFactory = CodeMirror.Html),
-                                        BooleanCol(Item::cool),
-                                        EnumeratedCol(Item::colour, EnumColAdapter<Colour>()),
-                                        MultiEnumeratedCol(Item::bestWith, EnumColAdapter<Colour>())
-                                ),
-                                listOf(
-                                        Item(UUID(0L, 0L), "Cool item", "", "", true, Colour.Black, emptySet()),
-                                        Item(UUID(0L, 1L), "OK item", "", "", false, Colour.DarkerBlack, EnumSet.of(Colour.LighterBlack, Colour.Black))
-                                ),
-                                { map -> Item(
-                                        id = map["id"]?.let(UUID::fromString) ?: UUID.randomUUID(),
-                                        name = map["name"]!!, // ^ update             ^ create
-                                        text = map["text"]!!,
-                                        code = map["code"]!!,
-                                        cool = map["cool"] == "true",
-                                        colour = Colour.valueOf(map["colour"]!!),
-                                        bestWith = (map.getAll("bestWith") ?: emptySet<String>()).mapTo(EnumSet.noneOf(Colour::class.java), Colour::valueOf)
-                                ) },
-                                sortable = true
-                        )
-                )),
-                RoutedModule("hwStat", HardwareStat()),
-                RoutedModule("stat", stat)
-        )
+    embeddedServer(Netty, 8081, "127.0.0.1") {
+        install(WebSockets)
 
-        embeddedServer(Netty, 8081) {
-            install(WebSockets)
+        routing {
 
-            routing {
+            installHitStatInterceptor(stat)
 
-                installHitStatInterceptor(stat)
+            get("/test/") {
+                call.respondText("This is a test.", ContentType.Text.Plain)
+            }
 
-                get("/test/") {
-                    call.respondText("This is a test.", ContentType.Text.Plain)
-                }
+            route("/admin/") {
 
-                route("/admin/") {
+                installAdmin(admin)
 
-                    installAdmin(admin)
-
-                    authentication {
-                        basicAuthentication("Admin") { cred ->
+                authentication {
+                    basic {
+                        realm = "Admin"
+                        validate { cred ->
                             if (cred.name == "admin" && cred.password == "admin") UserIdPrincipal("admin")
                             else null
                         }
                     }
-
                 }
 
-                krudStaticResources("krud-static")
             }
 
-        }.start(true)
+            krudStaticResources("krud-static")
+        }
 
-    }
+    }.start(true)
 
 }

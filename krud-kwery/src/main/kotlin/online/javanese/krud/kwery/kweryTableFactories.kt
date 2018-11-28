@@ -1,13 +1,12 @@
 package online.javanese.krud.kwery
 
-import com.github.andrewoma.kwery.mapper.Column as KwColumn
 import com.github.andrewoma.kwery.mapper.Dao
 import com.github.andrewoma.kwery.mapper.Table
-import online.javanese.krud.crud.Column as KrColumn
 import online.javanese.krud.crud.Sort
 import online.javanese.krud.kwery.KweryTable.Companion.TransformKweryColumn
-import online.javanese.krud.kwery.kweryEntityMapping.ValueFactory
 import java.util.*
+import com.github.andrewoma.kwery.mapper.Column as KwColumn
+import online.javanese.krud.crud.Column as KrColumn
 
 /**
  * A factory function for tables with [Uuid] IDs.

@@ -2,14 +2,14 @@ package online.javanese.krud
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpMethod
+import io.ktor.http.cio.websocket.Frame
 import io.ktor.util.StringValues
-import io.ktor.websocket.Frame
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SendChannel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 
 /**
  * Describes HTTP request.
- * If [method] is not [HttpMethod.Post], [post] must be [ValuesMap.Empty].
+ * If [method] is not [HttpMethod.Post], [post] must be [StringValues.Empty].
  */
 class HttpRequest(
         val method: HttpMethod,

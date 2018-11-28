@@ -5,7 +5,6 @@ import io.ktor.util.StringValues
 import online.javanese.krud.kwery.KweryTypes
 import java.lang.reflect.ParameterizedType
 import java.util.*
-import kotlin.NoSuchElementException
 
 /**
  * Creates Kwery mapper's [Value] from given [Source] (map).

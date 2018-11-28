@@ -31,12 +31,6 @@ dependencies {
     compile project(':krud-core')
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }

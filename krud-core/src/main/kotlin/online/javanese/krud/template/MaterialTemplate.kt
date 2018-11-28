@@ -318,7 +318,7 @@ class MaterialTemplate(
             crossinline configureList: UL.() -> Unit, crossinline renderItem: LI.(T) -> Unit
     ) {
         renderTitledBlock(title, Content.Card.Width.Normal) {
-            ul("mdl-list m-v-0 p-v-0${if (ulClasses.isNotBlank()) ' ' + ulClasses else ""}") {
+            ul("mdl-list m-v-0 p-v-0${if (ulClasses.isNotBlank()) " $ulClasses" else ""}") {
                 configureList()
                 items.forEach { item ->
                     li("mdl-list__item") {

@@ -29,12 +29,6 @@ dependencies {
     compile "io.ktor:ktor-websockets:$ktor_version"
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }

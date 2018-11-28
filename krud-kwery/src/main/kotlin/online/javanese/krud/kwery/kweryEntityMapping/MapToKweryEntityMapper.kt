@@ -27,7 +27,7 @@ private class RenamedStringValues(
         private val transformName: (String) -> String
 ) : StringValues {
     override val caseInsensitiveName: Boolean get() = map.caseInsensitiveName
-    override fun get(name: String): String? = map.get(transformName(name))
+    override fun get(name: String): String? = map[transformName(name)]
     override fun getAll(name: String): List<String>? = map.getAll(transformName(name))
     override fun names(): Set<String> = error("")
     override fun entries(): Set<Map.Entry<String, List<String>>> = error("")

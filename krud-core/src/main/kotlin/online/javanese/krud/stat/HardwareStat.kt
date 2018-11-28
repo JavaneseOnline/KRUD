@@ -4,9 +4,9 @@ import io.ktor.application.ApplicationCall
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.cio.websocket.Frame
 import io.ktor.response.respondText
-import io.ktor.websocket.Frame
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.delay
 import kotlinx.html.*
 import online.javanese.krud.*
 import online.javanese.krud.template.Content
