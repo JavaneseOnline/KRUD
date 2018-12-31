@@ -71,6 +71,21 @@ fun main(args: Array<String>) {
 
     embeddedServer(Netty, 8081, "127.0.0.1") {
         install(WebSockets)
+        authentication {
+            digest("admin") {
+                realm = "Admin"
+                userNameRealmPasswordDigestProvider = { userName, realm ->
+                    when (userName) {
+                        "admin" -> {
+                            digester.reset()
+                            digester.update("$userName:$realm:P@ssw0rd".toByteArray())
+                            digester.digest()
+                        }
+                        else -> null
+                    }
+                }
+            }
+        }
 
         routing {
 
@@ -80,20 +95,10 @@ fun main(args: Array<String>) {
                 call.respondText("This is a test.", ContentType.Text.Plain)
             }
 
-            route("/admin/") {
-
-                installAdmin(admin)
-
-                authentication {
-                    basic {
-                        realm = "Admin"
-                        validate { cred ->
-                            if (cred.name == "admin" && cred.password == "admin") UserIdPrincipal("admin")
-                            else null
-                        }
-                    }
+            authenticate("admin") {
+                route("/admin/") {
+                    installAdmin(admin)
                 }
-
             }
 
             krudStaticResources("krud-static")
