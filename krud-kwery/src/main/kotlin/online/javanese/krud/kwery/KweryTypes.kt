@@ -12,12 +12,21 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 import java.util.Collections.unmodifiableMap
-import kotlin.NoSuchElementException
 
 
 object KweryTypes {
 
     fun getTypeForConverter(converter: Converter<*>): Type {
+        // unwrap optional(converter) wrapper
+        val converter = try {
+            val from = converter.from
+            val parentConvField = from.javaClass.getDeclaredField("\$converter")
+            parentConvField.isAccessible = true
+            parentConvField.get(from) as Converter<*>
+        } catch (ignored: NoSuchFieldException) {
+            converter
+        }
+
         if (converter is EnumByNameConverter<*>) {
             val from = converter.from
             val typeField = from.javaClass.getDeclaredField("\$type")
